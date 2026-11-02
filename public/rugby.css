@@ -107,6 +107,7 @@ img{display:block}
 @media (max-width:520px){.tbl .wide{display:none}}
 .comphd{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .comphd img{height:34px;width:auto;max-width:150px;object-fit:contain;background:var(--chip-dark);padding:4px 7px;border-radius:6px}
+.comphd img.lightbg{background:#fff;border:1px solid var(--rule)}
 .comphd h2{font-size:24px;text-transform:uppercase}
 .jump{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .jump a{background:var(--paper);border:1px solid var(--rule);border-radius:999px;padding:4px 12px;text-decoration:none;font-weight:600;font-size:14px}

@@ -1,0 +1,28 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Ireland Rugby: Ireland, Munster, Leinster, Ulster and Connacht</title></head><body>
+<script>IR.shell('home')</script>
+<main id="main" class="wrap">
+<div class="tiles" id="tiles"></div>
+<div class="two"><section class="card"><h2>Coming up</h2><div id="up"><p class="empty">Loading…</p></div></section>
+<section class="card"><h2>Latest results</h2><div id="res"><p class="empty">Loading…</p></div></section></div>
+</main>
+<script>
+(async () => {
+  const up = document.getElementById('up'), res = document.getElementById('res');
+  const tile = (s, n, ms) => {
+    const nx = IR.upcoming(ms.filter((m) => IR.has(m, s)))[0], l = IR.results(ms.filter((m) => IR.has(m, s)))[0];
+    const opp = (m) => (m.h.s === s ? 'v ' + m.a.n : 'at ' + m.h.n);
+    return `<a class="tile" style="--tc:var(--${s})" href="/${s}/"><div class="hd"><img src="/img/crest/${s}-white.webp" alt="" width="46" height="46"><h2>${n}</h2></div>
+      <div class="ln"><small>Next</small>${nx ? IR.esc(opp(nx)) + '<br>' + IR.fmtDay(nx.date) : 'To be confirmed'}</div>
+      <div class="ln"><small>Last</small>${l ? IR.result(l, s) + ' ' + (l.h.s === s ? l.score.join('-') : [l.score[1], l.score[0]].join('-')) + ' ' + IR.esc(opp(l)) : 'None yet'}</div></a>`;
+  };
+  try {
+    const d = await IR.data();
+    const ms = d.matches;
+    document.getElementById('tiles').innerHTML = Object.entries(IR.TEAMS).map(([s, n]) => tile(s, n, ms)).join('');
+    const ours = ms.filter((m) => IR.irish(m.h) || IR.irish(m.a));
+    up.innerHTML = IR.byDay(IR.upcoming(ours).slice(0, 12)) || '<p class="empty">Nothing listed.</p>';
+    res.innerHTML = IR.byDay(IR.results(ours).slice(0, 12)) || '<p class="empty">Nothing yet.</p>';
+    IR.footer(d.updated);
+  } catch (e) { IR.fail(up); IR.fail(res); IR.footer(null); }
+})();
+</script></body></html>

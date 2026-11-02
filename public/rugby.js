@@ -1,0 +1,82 @@
+// Shared helpers and page shell for the Ireland rugby site.
+const IR = (() => {
+  const TEAMS = { ireland: 'Ireland', munster: 'Munster', leinster: 'Leinster', ulster: 'Ulster', connacht: 'Connacht' };
+  const COMP = {
+    urc: ['United Rugby Championship', 'URC', 'urc'], cc: ['Champions Cup', 'Champions Cup', 'champions-cup'], ch: ['Challenge Cup', 'Challenge Cup', 'challenge-cup'],
+    six: ['Six Nations', 'Six Nations', 'six-nations'], nc: ['Nations Championship', 'Nations Championship', 'nations-championship'], test: ['Test match', 'Test', null], anc: ['Autumn Nations Cup', 'Autumn Nations Cup', null],
+  };
+  // Logos that are white or mostly white, so they need a dark tile.
+  const DARK = new Set(['leinster', 'ulster', 'connacht', 'benetton', 'ospreys', 'scarlets', 'sharks', 'stormers', 'zebre-parma', 'edinburgh', 'fiji', 'new-zealand', 'argentina', 'south-africa', 'georgia']);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const irish = (t) => !!TEAMS[t?.s];
+  const provincial = (t) => irish(t) && t.s !== 'ireland';
+  const has = (m, s) => m.h.s === s || m.a.s === s;
+  const done = (m) => /^Finished/.test(m.state) && m.score;
+
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const fmt = (d, o, tz) => new Intl.DateTimeFormat('en-IE', { timeZone: tz || zone, ...o }).format(d);
+  const fmtDay = (iso) => fmt(new Date(iso), { weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtDayLong = (iso) => fmt(new Date(iso), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const fmtTime = (iso, tz) => fmt(new Date(iso), { hour: '2-digit', minute: '2-digit', hour12: false }, tz);
+  const irishTime = (iso) => { const a = fmtTime(iso), b = fmtTime(iso, 'Europe/Dublin'); return a === b ? '' : b + ' Irish'; };
+
+  const logo = (t, cls = '') => {
+    if (t?.s) {
+      const tint = ['leinster', 'ulster', 'connacht'].includes(t.s) ? ' ' + t.s : '';
+      return `<span class="lg${DARK.has(t.s) ? ' dark' : ''}${tint} ${cls}"><img src="/img/t/${t.s}.webp" alt="" width="48" height="48" loading="lazy"></span>`;
+    }
+    if (t?.logo) return `<span class="lg ${cls}"><img src="${esc(t.logo)}" alt="" width="48" height="48" loading="lazy"></span>`;
+    return `<span class="lg txt ${cls}">${esc((t?.n || '?').slice(0, 2).toUpperCase())}</span>`;
+  };
+  const compName = (m) => (COMP[m.comp] ? COMP[m.comp][1] : m.compName) || '';
+
+  const result = (m, s) => {
+    if (!done(m)) return null;
+    const [x, y] = m.h.s === s ? m.score : [m.score[1], m.score[0]];
+    return x > y ? 'W' : x < y ? 'L' : 'D';
+  };
+
+  function row(m) {
+    const d = done(m), started = Date.parse(m.date) < Date.now();
+    const won = d ? (m.score[0] > m.score[1] ? 'h' : m.score[1] > m.score[0] ? 'a' : '') : '';
+    const side = (t, sc, w) => `<div class="side${w ? ' won' : ''}">${logo(t)}<span class="nm">${esc(t.n)}</span><span class="sc">${sc ?? ''}</span></div>`;
+    const derby = provincial(m.h) && provincial(m.a) ? '<span class="tag">Interpro</span>' : '';
+    const pend = !d && started ? ' · Score to come' : '';
+    const when = d ? `<b>FT</b>` : `<b>${fmtTime(m.date)}</b><span>${irishTime(m.date)}</span>`;
+    const meta = `<div class="meta">${esc(compName(m))}${m.venue ? ' · ' + esc(m.venue) : ''}${pend}${derby}</div>`;
+    const inner = `<div class="when">${when}</div><div>${side(m.h, d ? m.score[0] : '', won === 'h')}${side(m.a, d ? m.score[1] : '', won === 'a')}</div>${meta}`;
+    return m.id ? `<a class="row link" href="/match/?id=${m.id}">${inner}</a>` : `<div class="row">${inner}</div>`;
+  }
+
+  function byDay(list) {
+    let out = '', last = '';
+    for (const m of list) {
+      const k = fmtDay(m.date);
+      if (k !== last) { out += `<div class="day">${k}</div>`; last = k; }
+      out += row(m);
+    }
+    return out;
+  }
+
+  const upcoming = (ms) => ms.filter((m) => !done(m) && Date.parse(m.date) > Date.now() - 6 * 3600e3).sort((a, b) => (a.date < b.date ? -1 : 1));
+  const results = (ms) => ms.filter(done).sort((a, b) => (a.date > b.date ? -1 : 1));
+
+  async function data() {
+    const r = await fetch('/api/data');
+    if (!r.ok) throw new Error('data ' + r.status);
+    return r.json();
+  }
+
+  function shell(active) {
+    const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${active === s ? ' aria-current="page"' : ''}>${n}</a>`).join('');
+    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Main">${nav}<a href="/tables/"${active === 'tables' ? ' aria-current="page"' : ''}>Tables</a></nav></div><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
+  }
+
+  function footer(updated) {
+    const u = updated ? ' Last update: ' + fmt(new Date(updated), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }) + '.' : '';
+    document.body.insertAdjacentHTML('beforeend', `<footer class="foot"><p>Results and tables update every few hours, so scores are not live.${u}</p><p>Provincial fixtures are copied from the teams' published lists and can change. Results data: Highlightly.</p><p>Unofficial fan site. Not connected with the IRFU, the provinces or any competition. Crests, logos and kits belong to their owners.</p></footer>`);
+  }
+
+  const fail = (el) => { el.innerHTML = '<p class="empty">Could not load the data. Please try again shortly.</p>'; };
+  return { TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
+})();

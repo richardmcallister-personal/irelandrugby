@@ -1,0 +1,387 @@
+[
+{
+"date": "2026-12-04T19:45:00.000Z",
+"comp": "urc",
+"h": "ospreys",
+"a": "leinster",
+"venue": "St Helen's"
+},
+{
+"date": "2026-12-05T15:00:00.000Z",
+"comp": "urc",
+"h": "cardiff",
+"a": "ulster",
+"venue": "Cardiff Arms Park"
+},
+{
+"date": "2026-12-05T17:15:00.000Z",
+"comp": "urc",
+"h": "scarlets",
+"a": "connacht",
+"venue": "Parc y Scarlets"
+},
+{
+"date": "2026-12-05T19:45:00.000Z",
+"comp": "urc",
+"h": "zebre-parma",
+"a": "munster",
+"venue": "Stadio Sergio Lanfranchi"
+},
+{
+"date": "2026-12-12T13:00:00.000Z",
+"comp": "ch",
+"h": "ulster",
+"a": "bayonne",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2026-12-12T17:30:00.000Z",
+"comp": "cc",
+"h": "leinster",
+"a": "sale-sharks",
+"venue": null
+},
+{
+"date": "2026-12-12T20:00:00.000Z",
+"comp": "cc",
+"h": "bristol-bears",
+"a": "munster",
+"venue": "Ashton Gate"
+},
+{
+"date": "2026-12-13T13:00:00.000Z",
+"comp": "cc",
+"h": "exeter-chiefs",
+"a": "connacht",
+"venue": "Sandy Park"
+},
+{
+"date": "2026-12-18T19:45:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "ospreys",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2026-12-18T19:45:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "scarlets",
+"venue": "Virgin Media Park"
+},
+{
+"date": "2026-12-19T17:30:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "glasgow-warriors",
+"venue": "Laya Arena"
+},
+{
+"date": "2026-12-19T19:45:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "edinburgh",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2026-12-27T17:30:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "connacht",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2026-12-27T19:45:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "leinster",
+"venue": "Thomond Park"
+},
+{
+"date": "2027-01-02T17:15:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "munster",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-01-02T19:45:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "ulster",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-01-09T17:30:00.000Z",
+"comp": "cc",
+"h": "leinster",
+"a": "pau",
+"venue": null
+},
+{
+"date": "2027-01-09T20:00:00.000Z",
+"comp": "cc",
+"h": "connacht",
+"a": "toulouse",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-01-10T13:00:00.000Z",
+"comp": "ch",
+"h": "perpignan",
+"a": "ulster",
+"venue": "Stade Aim\u00e9 Giral"
+},
+{
+"date": "2027-01-10T15:15:00.000Z",
+"comp": "cc",
+"h": "bordeaux-begles",
+"a": "munster",
+"venue": "Stade Chaban-Delmas"
+},
+{
+"date": "2027-01-16T15:15:00.000Z",
+"comp": "ch",
+"h": "ulster",
+"a": "dragons",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-01-16T17:30:00.000Z",
+"comp": "cc",
+"h": "munster",
+"a": "gloucester",
+"venue": "Thomond Park"
+},
+{
+"date": "2027-01-16T17:30:00.000Z",
+"comp": "cc",
+"h": "la-rochelle",
+"a": "connacht",
+"venue": "Stade Marcel-Deflandre"
+},
+{
+"date": "2027-01-16T20:00:00.000Z",
+"comp": "cc",
+"h": "leicester-tigers",
+"a": "leinster",
+"venue": null
+},
+{
+"date": "2027-01-22T19:45:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "sharks",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-01-23T17:30:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "dragons",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-01-23T19:45:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "connacht",
+"venue": "Thomond Park"
+},
+{
+"date": "2027-01-29T19:45:00.000Z",
+"comp": "urc",
+"h": "dragons",
+"a": "munster",
+"venue": "Rodney Parade"
+},
+{
+"date": "2027-01-30T17:30:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "bulls",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-01-30T19:45:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "ulster",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-02-26T19:45:00.000Z",
+"comp": "urc",
+"h": "dragons",
+"a": "ulster",
+"venue": "Rodney Parade"
+},
+{
+"date": "2027-02-26T19:45:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "benetton",
+"venue": "Virgin Media Park"
+},
+{
+"date": "2027-02-27T17:30:00.000Z",
+"comp": "urc",
+"h": "ospreys",
+"a": "connacht",
+"venue": "St Helen's"
+},
+{
+"date": "2027-02-27T19:45:00.000Z",
+"comp": "urc",
+"h": "edinburgh",
+"a": "leinster",
+"venue": "Hive Stadium"
+},
+{
+"date": "2027-03-19T19:45:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "cardiff",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-03-20T15:00:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "zebre-parma",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-03-20T17:30:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "ospreys",
+"venue": "Thomond Park"
+},
+{
+"date": "2027-03-20T19:45:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "benetton",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-03-26T19:45:00.000Z",
+"comp": "urc",
+"h": "scarlets",
+"a": "leinster",
+"venue": "Parc y Scarlets"
+},
+{
+"date": "2027-03-27T14:15:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "lions",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-03-27T17:30:00.000Z",
+"comp": "urc",
+"h": "cardiff",
+"a": "munster",
+"venue": "Cardiff Arms Park"
+},
+{
+"date": "2027-03-27T19:45:00.000Z",
+"comp": "urc",
+"h": "benetton",
+"a": "ulster",
+"venue": "Stadio Monigo"
+},
+{
+"date": "2027-04-17T11:45:00.000Z",
+"comp": "urc",
+"h": "lions",
+"a": "munster",
+"venue": "Ellis Park"
+},
+{
+"date": "2027-04-17T16:45:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "connacht",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-04-17T18:45:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "scarlets",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-04-23T18:45:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "leinster",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-04-24T16:05:00.000Z",
+"comp": "urc",
+"h": "stormers",
+"a": "munster",
+"venue": "Cape Town Stadium"
+},
+{
+"date": "2027-04-24T18:45:00.000Z",
+"comp": "urc",
+"h": "connacht",
+"a": "dragons",
+"venue": "Dexcom Stadium"
+},
+{
+"date": "2027-05-08T11:30:00.000Z",
+"comp": "urc",
+"h": "sharks",
+"a": "connacht",
+"venue": "Kings Park"
+},
+{
+"date": "2027-05-08T16:15:00.000Z",
+"comp": "urc",
+"h": "munster",
+"a": "ulster",
+"venue": "Thomond Park"
+},
+{
+"date": "2027-05-08T18:45:00.000Z",
+"comp": "urc",
+"h": "leinster",
+"a": "stormers",
+"venue": "Laya Arena"
+},
+{
+"date": "2027-05-14T18:45:00.000Z",
+"comp": "urc",
+"h": "ulster",
+"a": "lions",
+"venue": "Affidea Stadium"
+},
+{
+"date": "2027-05-14T18:45:00.000Z",
+"comp": "urc",
+"h": "edinburgh",
+"a": "munster",
+"venue": "Hive Stadium"
+},
+{
+"date": "2027-05-15T11:30:00.000Z",
+"comp": "urc",
+"h": "bulls",
+"a": "connacht",
+"venue": "Loftus Versfeld"
+},
+{
+"date": "2027-05-15T16:30:00.000Z",
+"comp": "urc",
+"h": "zebre-parma",
+"a": "leinster",
+"venue": "Stadio Sergio Lanfranchi"
+}
+]

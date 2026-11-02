@@ -1,12 +1,20 @@
 # Ireland rugby: handover (2 Nov 2026)
 
 ## State
-Holding page and the guarded feed test route are deployed. No site yet. The feed test is done (below).
+First pages live: home, five team pages, tables, match page with team sheets and highlights. Noindex, not announced.
 
 ## Next task
-Richard to decide how much scorers matter, then build the first pages.
+Player pages (appearances for each province and Ireland). Team sheets are building up in KV under `m:<id>`, about 6 matches per 6-hour run.
+
+## Open items
+- Fixtures need re-checking against the teams' sites (`tools/fixtures_src.txt`), and Ireland's Six Nations 2027 games added if the feed lacks them.
+- Venue names for Leinster's Champions Cup home games are blank until confirmed.
+- connacht.png, leinster.png and ulster.png in Richard's folder are white only, so they sit on team-colour tiles.
+- Ground photos not collected. Retailer shirt photos are not used on the site.
+- Paid plan before live scores. Scorers: not in the feed; test Wikipedia for Ireland Tests.
 
 ## Feed test results (live data, 2 Nov 2026, Highlightly free plan)
+- No future URC or European fixtures in the feed: only finished matches. Ireland's upcoming Tests are listed.
 Sample: 12 finished matches opened (11 provincial, 1 Ireland), plus match lists, one table and one highlight.
 - Free plan reports "All data available with current plan"; no route tested was blocked.
 - Fixtures and scores: all five teams, URC, Champions Cup, Six Nations, Nations Championship, Tests. Lists go back to autumn 2020.

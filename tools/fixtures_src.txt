@@ -1,0 +1,56 @@
+# date|Irish time|comp|home|away|venue   Sources checked 2 Nov 2026: munsterrugby.ie, ulster.rugby, connachtrugby.ie; Leinster from Sky Sports, dates cross-checked with Wikipedia.
+2026-12-04|19:45|urc|ospreys|leinster|St Helen's
+2026-12-05|15:00|urc|cardiff|ulster|Cardiff Arms Park
+2026-12-05|17:15|urc|scarlets|connacht|Parc y Scarlets
+2026-12-05|19:45|urc|zebre-parma|munster|Stadio Sergio Lanfranchi
+2026-12-12|13:00|ch|ulster|bayonne|Affidea Stadium
+2026-12-12|17:30|cc|leinster|sale-sharks|
+2026-12-12|20:00|cc|bristol-bears|munster|Ashton Gate
+2026-12-13|13:00|cc|exeter-chiefs|connacht|Sandy Park
+2026-12-18|19:45|urc|ulster|ospreys|Affidea Stadium
+2026-12-18|19:45|urc|munster|scarlets|Virgin Media Park
+2026-12-19|17:30|urc|leinster|glasgow-warriors|Laya Arena
+2026-12-19|19:45|urc|connacht|edinburgh|Dexcom Stadium
+2026-12-27|17:30|urc|ulster|connacht|Affidea Stadium
+2026-12-27|19:45|urc|munster|leinster|Thomond Park
+2027-01-02|17:15|urc|connacht|munster|Dexcom Stadium
+2027-01-02|19:45|urc|leinster|ulster|Laya Arena
+2027-01-09|17:30|cc|leinster|pau|
+2027-01-09|20:00|cc|connacht|toulouse|Dexcom Stadium
+2027-01-10|13:00|ch|perpignan|ulster|Stade Aimé Giral
+2027-01-10|15:15|cc|bordeaux-begles|munster|Stade Chaban-Delmas
+2027-01-16|15:15|ch|ulster|dragons|Affidea Stadium
+2027-01-16|17:30|cc|munster|gloucester|Thomond Park
+2027-01-16|17:30|cc|la-rochelle|connacht|Stade Marcel-Deflandre
+2027-01-16|20:00|cc|leicester-tigers|leinster|
+2027-01-22|19:45|urc|ulster|sharks|Affidea Stadium
+2027-01-23|17:30|urc|leinster|dragons|Laya Arena
+2027-01-23|19:45|urc|munster|connacht|Thomond Park
+2027-01-29|19:45|urc|dragons|munster|Rodney Parade
+2027-01-30|17:30|urc|leinster|bulls|Laya Arena
+2027-01-30|19:45|urc|connacht|ulster|Dexcom Stadium
+2027-02-26|19:45|urc|dragons|ulster|Rodney Parade
+2027-02-26|19:45|urc|munster|benetton|Virgin Media Park
+2027-02-27|17:30|urc|ospreys|connacht|St Helen's
+2027-02-27|19:45|urc|edinburgh|leinster|Hive Stadium
+2027-03-19|19:45|urc|connacht|cardiff|Dexcom Stadium
+2027-03-20|15:00|urc|ulster|zebre-parma|Affidea Stadium
+2027-03-20|17:30|urc|munster|ospreys|Thomond Park
+2027-03-20|19:45|urc|leinster|benetton|Laya Arena
+2027-03-26|19:45|urc|scarlets|leinster|Parc y Scarlets
+2027-03-27|14:15|urc|connacht|lions|Dexcom Stadium
+2027-03-27|17:30|urc|cardiff|munster|Cardiff Arms Park
+2027-03-27|19:45|urc|benetton|ulster|Stadio Monigo
+2027-04-17|12:45|urc|lions|munster|Ellis Park
+2027-04-17|17:45|urc|leinster|connacht|Laya Arena
+2027-04-17|19:45|urc|ulster|scarlets|Affidea Stadium
+2027-04-23|19:45|urc|ulster|leinster|Affidea Stadium
+2027-04-24|17:05|urc|stormers|munster|Cape Town Stadium
+2027-04-24|19:45|urc|connacht|dragons|Dexcom Stadium
+2027-05-08|12:30|urc|sharks|connacht|Kings Park
+2027-05-08|17:15|urc|munster|ulster|Thomond Park
+2027-05-08|19:45|urc|leinster|stormers|Laya Arena
+2027-05-14|19:45|urc|ulster|lions|Affidea Stadium
+2027-05-14|19:45|urc|edinburgh|munster|Hive Stadium
+2027-05-15|12:30|urc|bulls|connacht|Loftus Versfeld
+2027-05-15|17:30|urc|zebre-parma|leinster|Stadio Sergio Lanfranchi

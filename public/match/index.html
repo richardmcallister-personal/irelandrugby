@@ -1,0 +1,35 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Match · Ireland Rugby</title></head><body>
+<script>IR.shell('')</script>
+<main id="main" class="wrap"><section class="card" id="b"><p class="empty">Loading…</p></section><div class="two" id="sheets"></div><div id="hl"></div></main>
+<script>
+(async () => {
+  const POS = { 1: 'Loosehead prop', 2: 'Hooker', 3: 'Tighthead prop', 4: 'Lock', 5: 'Lock', 6: 'Blindside flanker', 7: 'Openside flanker', 8: 'Number 8', 9: 'Scrum-half', 10: 'Fly-half', 11: 'Left wing', 12: 'Inside centre', 13: 'Outside centre', 14: 'Right wing', 15: 'Full-back' };
+  const b = document.getElementById('b');
+  const id = new URLSearchParams(location.search).get('id');
+  const sheet = (t, ps) => {
+    let rows = '';
+    for (let n = 1; n <= 15; n++) {
+      const p = ps.find((x) => x.no === n);
+      rows += p ? `<tr><td class="no">${n}</td><td>${IR.esc(p.n)}</td><td class="pos">${POS[n]}</td></tr>` : `<tr class="gap"><td class="no">${n}</td><td>Not listed by the feed</td><td class="pos">${POS[n]}</td></tr>`;
+    }
+    const bench = ps.filter((p) => p.no > 15);
+    if (bench.length) rows += '<tr class="benchhd"><td colspan="3">Replacements</td></tr>' + bench.map((p) => `<tr><td class="no">${p.no}</td><td colspan="2">${IR.esc(p.n)}</td></tr>`).join('');
+    return `<section class="card"><h2>${IR.esc(t.n)}</h2><table class="sheet"><tbody>${rows}</tbody></table></section>`;
+  };
+  try {
+    const r = await fetch('/api/match?id=' + encodeURIComponent(id || ''));
+    if (!r.ok) throw new Error('match');
+    const { match: m, detail: d } = await r.json();
+    document.title = m.h.n + ' v ' + m.a.n + ' · Ireland Rugby';
+    const fin = IR.done(m);
+    const mid = fin ? `<div class="s">${m.score[0]} - ${m.score[1]}<span class="st">Full time</span></div>` : `<div class="s" style="font-size:30px">${IR.fmtTime(m.date)}<span class="st">${IR.irishTime(m.date) || 'Kick-off'}</span></div>`;
+    const meta = [IR.fmtDayLong(m.date), IR.compName(m) + (m.week ? ', round ' + m.week : ''), d?.venue ? d.venue.name + (d.venue.city ? ', ' + d.venue.city : '') : '', d?.referee ? 'Referee: ' + d.referee : ''].filter(Boolean).map(IR.esc).join(' · ');
+    b.innerHTML = `<div class="board"><div class="t">${IR.logo(m.h, 'big')}${IR.esc(m.h.n)}</div>${mid}<div class="t">${IR.logo(m.a, 'big')}${IR.esc(m.a.n)}</div></div><p class="note" style="text-align:center">${meta}</p>`;
+    const home = d?.lineups?.home || [], away = d?.lineups?.away || [];
+    document.getElementById('sheets').innerHTML = home.length || away.length ? sheet(m.h, home) + sheet(m.a, away)
+      : `<section class="card" style="grid-column:1/-1"><h2>Team sheets</h2><p class="empty">${fin ? 'Not in yet. They sometimes arrive a few days after the match.' : 'Not named yet.'}</p></section>`;
+    if (d?.highlights?.length) document.getElementById('hl').innerHTML = '<section class="card"><h2>Highlights</h2><div class="hl">' + d.highlights.map((v) => `<a href="${IR.esc(v.url)}" target="_blank" rel="noopener">${v.img ? `<img src="${IR.esc(v.img)}" alt="" loading="lazy" width="320" height="180">` : ''}${IR.esc(v.title)}<small>${IR.esc(v.channel || '')}</small></a>`).join('') + '</div></section>';
+    IR.footer(null);
+  } catch (e) { b.innerHTML = '<p class="empty">Match not found. <a href="/">Back to the home page</a>.</p>'; }
+})();
+</script></body></html>

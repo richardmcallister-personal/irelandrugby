@@ -1,0 +1,24 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Tables · Ireland Rugby</title></head><body>
+<script>IR.shell('tables')</script>
+<main id="main" class="wrap"><h1 style="font-size:40px;text-transform:uppercase;margin-bottom:10px">Tables</h1><div class="jump" id="jump"></div><div id="t"><p class="empty">Loading…</p></div></main>
+<script>
+(async () => {
+  const el = document.getElementById('t');
+  const ORDER = ['urc', 'cc', 'ch', 'nc', 'six'];
+  const tbl = (rows) => '<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="wide">PF</th><th class="wide">PA</th><th>Diff</th><th>Pts</th></tr></thead><tbody>' + rows.map((r) => {
+    const n = `<span class="tmi">${IR.logo(r)}${IR.esc(r.n)}</span>`;
+    const diff = r.pf - r.pa;
+    return `<tr class="${IR.irish(r) ? 'irish' : ''}"><td>${r.pos}</td><td class="tm">${n}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="wide">${r.pf}</td><td class="wide">${r.pa}</td><td>${diff > 0 ? '+' + diff : diff}</td><td class="pts">${r.pts}</td></tr>`;
+  }).join('') + '</tbody></table>';
+  try {
+    const d = await IR.data();
+    const codes = ORDER.filter((c) => d.tables[c]?.length);
+    document.getElementById('jump').innerHTML = codes.map((c) => `<a href="#${c}">${IR.esc(IR.COMP[c][1])}</a>`).join('');
+    el.innerHTML = codes.map((c) => {
+      const gs = d.tables[c];
+      return `<section class="card" id="${c}"><div class="comphd"><img src="/img/comp/${IR.COMP[c][2]}.webp" alt="" height="34"><h2>${IR.esc(IR.COMP[c][0])}</h2></div>` + gs.map((g) => (gs.length > 1 ? `<div class="grp">${IR.esc((g.name || '').replace(/^.*,\s*/, ''))}</div>` : '') + tbl(g.rows)).join('') + '</section>';
+    }).join('') || '<p class="empty">No tables yet.</p>';
+    IR.footer(d.updated);
+  } catch (e) { IR.fail(el); IR.footer(null); }
+})();
+</script></body></html>

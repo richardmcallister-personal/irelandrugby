@@ -2,6 +2,7 @@
   "name": "irelandrugby",
   "main": "worker.js",
   "compatibility_date": "2026-11-01",
+  "workers_dev": true,
   "routes": [
     { "pattern": "irelandrugby.wiki", "custom_domain": true },
     { "pattern": "www.irelandrugby.wiki", "custom_domain": true }

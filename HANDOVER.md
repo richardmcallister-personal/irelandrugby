@@ -1,18 +1,19 @@
 # Ireland rugby: handover (2 Nov 2026)
 
 ## State
-Live: home, five team pages, tables, match pages, players, player pages, Ireland selection by province. Noindex, not announced.
-Team sheets since 2020 are collecting newest first: about 65 calls a day on quiet days, up to 20 per 6-hour run. Progress shows on /players/.
+Live: home, five team pages, tables, match pages with scorers, players, player pages, Ireland selection by province, scorers, head to head, history, shirts. Noindex, not announced.
+Team sheets since 2020 are collecting newest first. Scorers: 521 of 625 matches add up (2 Nov 2026), and the file is a snapshot until `tools/build_scorers.py` is rerun on Richard's Mac. Shirts: 160 chosen from 259 photos.
 
 ## Next task
-None in progress. Wait for collection, then check totals on /players/ and /selection/.
+None in progress. Richard to decide on rerunning scorers and fixtures on a weekly schedule, and on the shirt photo rights before launch.
 
 ## Open items
 - Fixtures need re-checking against the teams' sites (`tools/fixtures_src.txt`), and Ireland's Six Nations 2027 games added if the feed lacks them.
 - Venue names for Leinster's Champions Cup home games are blank until confirmed.
 - connacht.png, leinster.png and ulster.png in Richard's folder are white only, so they sit on team-colour tiles.
-- Ground photos not collected. Retailer shirt photos are not used on the site.
-- Paid plan before live scores. Scorers: not in the feed; test Wikipedia for Ireland Tests.
+- Ground photos not collected. Shirts page uses retailer photos with source links: no permission obtained, decide before launch.
+- Paid plan before live scores. Missing scorers: mostly 2020-22 URC and European matches and Ireland tours.
+- `_site-export.tgz` left in Richard's asset folder can be deleted.
 
 ## Feed test results (live data, 2 Nov 2026, Highlightly free plan)
 - No future URC or European fixtures in the feed: only finished matches. Ireland's upcoming Tests are listed.

@@ -1,0 +1,46 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Scorers · Ireland Rugby</title></head><body>
+<script>IR.shell('scorers')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Scorers</h1><p class="note" id="cov"></p>
+<div class="filters"><select id="team" aria-label="Team"><option value="">All five teams</option></select><select id="sea" aria-label="Season"><option value="">Since 2020</option></select><select id="comp" aria-label="Competition"><option value="">All competitions</option></select></div>
+<div class="two"><section class="card"><h2>Tries</h2><div id="tr"><p class="empty">Loading…</p></div></section><section class="card"><h2>Points</h2><div id="pts"></div></section></div></main>
+<script>
+(async () => {
+  const $ = (i) => document.getElementById(i);
+  for (const [s, n] of Object.entries(IR.TEAMS)) $('team').insertAdjacentHTML('beforeend', `<option value="${s}">${n}</option>`);
+  const norm = (n) => IR.playerKey(n, null);
+  try {
+    const [hr, sr, pr] = await Promise.all([fetch('/api/history'), fetch('/data/scorers.json'), fetch('/api/players')]);
+    const hist = await hr.json(), sc = await sr.json(), store = await pr.json();
+    const byId = new Map(hist.map((m) => [m.id, m]));
+    const keys = new Map(); for (const p of store.people) keys.set(norm(p.n), p.k);
+    const rows = [];
+    let used = 0;
+    for (const [id, rec] of Object.entries(sc)) {
+      const m = byId.get(Number(id)); if (!m) continue;
+      let any = false;
+      for (const [side, t] of [['h', m.h.s], ['a', m.a.s]]) if (IR.TEAMS[t] && rec[side + 'ok']) { rows.push({ m, t, s: rec[side] }); any = true; }
+      if (any) used++;
+    }
+    const finished = hist.filter((m) => /^Finished/.test(m.state)).length;
+    $('cov').textContent = `From Wikipedia match reports, used only where the scorers add up to the final score: ${used} of ${finished} matches since October 2020. Totals are therefore minimums, not official records.`;
+    for (const s of [...new Set(rows.map((r) => IR.season(r.m.date)))].sort().reverse()) $('sea').insertAdjacentHTML('beforeend', `<option>${s}</option>`);
+    for (const c of [...new Set(rows.map((r) => r.m.compName))].sort()) $('comp').insertAdjacentHTML('beforeend', `<option>${IR.esc(c)}</option>`);
+    const draw = () => {
+      const T = new Map();
+      const add = (r, w, f) => { for (const x of r || []) { if (/penalty try/i.test(x[0])) continue; const k = norm(x[0]); const o = T.get(k) || { n: x[0], tr: 0, pts: 0 }; if (f === 'try') o.tr += x[2]; o.pts += w * x[2]; T.set(k, o); } };
+      for (const r of rows) {
+        if ($('team').value && r.t !== $('team').value) continue;
+        if ($('sea').value && IR.season(r.m.date) !== $('sea').value) continue;
+        if ($('comp').value && r.m.compName !== $('comp').value) continue;
+        add(r.s.try, 5, 'try'); add(r.s.con, 2); add(r.s.pen, 3); add(r.s.drop, 3);
+      }
+      const list = [...T.values()];
+      const nm = (o) => keys.get(norm(o.n)) ? `<a href="/player/?id=${encodeURIComponent(keys.get(norm(o.n)))}">${IR.esc(o.n)}</a>` : IR.esc(o.n);
+      const tbl = (f, lab) => { const l = list.filter((o) => o[f] > 0).sort((a, b) => b[f] - a[f] || a.n.localeCompare(b.n)).slice(0, 25); let rk = 0, prev = null; return l.length ? `<table class="pl"><thead><tr><th>Player</th><th>${lab}</th></tr></thead><tbody>` + l.map((o, i) => { if (o[f] !== prev) { rk = i + 1; prev = o[f]; } return `<tr><td>${rk}. ${nm(o)}</td><td><b>${o[f]}</b></td></tr>`; }).join('') + '</tbody></table>' : '<p class="empty">Nothing for this choice.</p>'; };
+      $('tr').innerHTML = tbl('tr', 'Tries'); $('pts').innerHTML = tbl('pts', 'Points');
+    };
+    $('team').onchange = $('sea').onchange = $('comp').onchange = draw; draw();
+  } catch (e) { IR.fail($('tr')); }
+  IR.footer(null);
+})();
+</script></body></html>

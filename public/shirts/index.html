@@ -1,0 +1,24 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Shirts · Ireland Rugby</title></head><body>
+<script>IR.shell('shirts')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Shirts</h1><p class="note">One shirt per team, season and type where we have a photo. Not a complete history. Dates and types are as described by the seller, and photos belong to the sites linked under each shirt.</p>
+<div class="filters"><select id="team" aria-label="Team"></select><select id="kind" aria-label="Type"><option value="">All types</option></select></div><div id="g"><p class="empty">Loading…</p></div></main>
+<script>
+(async () => {
+  const $ = (i) => document.getElementById(i);
+  $('team').innerHTML = Object.entries(IR.TEAMS).map(([s, n]) => `<option value="${s}">${n}</option>`).join('');
+  const NAME = { home: 'Home', away: 'Away', third: 'Third', european: 'European', 'world cup': 'World Cup', unspecified: 'Shirt' };
+  const startY = (s) => parseInt(s, 10) || 0;
+  try {
+    const items = await (await fetch('/data/museum.json')).json();
+    const q = new URLSearchParams(location.search).get('team'); if (IR.TEAMS[q]) $('team').value = q;
+    for (const k of [...new Set(items.map((i) => i.k))]) $('kind').insertAdjacentHTML('beforeend', `<option value="${k}">${NAME[k] || k}</option>`);
+    const draw = () => {
+      const l = items.filter((i) => i.t === $('team').value && (!$('kind').value || i.k === $('kind').value)).sort((a, b) => startY(b.s) - startY(a.s) || b.s.localeCompare(a.s));
+      const seasons = [...new Set(l.map((i) => i.s))];
+      $('g').innerHTML = seasons.map((s) => `<section class="card"><h2>${IR.esc(s)}</h2><div class="shirts">` + l.filter((i) => i.s === s).map((i) => `<figure><img src="/img/shirt/${IR.esc(i.f)}" alt="${IR.TEAMS[i.t]} ${IR.esc(s)} ${NAME[i.k] || ''} shirt" loading="lazy" width="200" height="225"><figcaption>${NAME[i.k] || IR.esc(i.k)}<a href="${IR.esc(i.src)}" target="_blank" rel="noopener nofollow">${IR.esc(i.host)}</a></figcaption></figure>`).join('') + '</div></section>').join('') || '<p class="empty">No shirts for this choice.</p>';
+    };
+    $('team').onchange = $('kind').onchange = draw; draw();
+  } catch (e) { IR.fail($('g')); }
+  IR.footer(null);
+})();
+</script></body></html>

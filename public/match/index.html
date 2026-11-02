@@ -29,6 +29,13 @@
     const home = d?.lineups?.home || [], away = d?.lineups?.away || [];
     document.getElementById('sheets').innerHTML = home.length || away.length ? sheet(m.h, home) + sheet(m.a, away)
       : `<section class="card" style="grid-column:1/-1"><h2>Team sheets</h2><p class="empty">${fin ? 'Not in yet. They sometimes arrive a few days after the match.' : 'Not named yet.'}</p></section>`;
+    const h2hLink = IR.TEAMS[m.h.s] ? `?a=${m.h.s}&b=${encodeURIComponent(m.a.s || m.a.n)}` : IR.TEAMS[m.a.s] ? `?a=${m.a.s}&b=${encodeURIComponent(m.h.s || m.h.n)}` : null;
+    if (h2hLink) b.insertAdjacentHTML('beforeend', `<p class="note" style="text-align:center"><a href="/h2h/${h2hLink}">Head-to-head record</a></p>`);
+    if (fin) fetch('/data/scorers.json').then((x) => x.json()).then((sc) => {
+      const s = sc[m.id]; if (!s) return;
+      const warn = !s.hok || !s.aok ? '<p class="note">These lines from Wikipedia do not add up to the final score, so they may be incomplete.</p>' : '';
+      b.insertAdjacentHTML('beforeend', `<div class="scorers"><div><h3>${IR.esc(m.h.n)}</h3>${IR.sideScorers(s.h)}</div><div><h3>${IR.esc(m.a.n)}</h3>${IR.sideScorers(s.a)}</div></div>${warn}`);
+    }).catch(() => {});
     if (d?.highlights?.length) document.getElementById('hl').innerHTML = '<section class="card"><h2>Highlights</h2><div class="hl">' + d.highlights.map((v) => `<a href="${IR.esc(v.url)}" target="_blank" rel="noopener">${v.img ? `<img src="${IR.esc(v.img)}" alt="" loading="lazy" width="320" height="180">` : ''}${IR.esc(v.title)}<small>${IR.esc(v.channel || '')}</small></a>`).join('') + '</div></section>';
     IR.footer(null);
   } catch (e) { b.innerHTML = '<p class="empty">Match not found. <a href="/">Back to the home page</a>.</p>'; }

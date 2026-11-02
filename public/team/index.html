@@ -8,7 +8,7 @@
 </div><div>
 <section class="card"><h2>Fixtures</h2><div id="fix"></div></section>
 <div id="tabs"></div>
-<section class="card"><h2>Current kits</h2><div class="kits" id="kits"></div></section>
+<section class="card"><h2>Current kits</h2><div class="kits" id="kits"></div><p class="note"><a id="shirtl" href="/shirts/">Older shirts</a> · <a id="h2hl" href="/h2h/">Head to head</a> · <a id="pll" href="/players/">Players</a></p></section>
 </div></div>
 </main>
 <script>
@@ -16,6 +16,7 @@
   const name = IR.TEAMS[SLUG];
   if (!name) { location.replace('/'); return; }
   document.title = name + ' · Ireland Rugby';
+  document.getElementById('shirtl').href = '/shirts/?team=' + SLUG; document.getElementById('h2hl').href = '/h2h/?a=' + SLUG; document.getElementById('pll').href = '/players/?team=' + SLUG;
   const KITS = {
     ireland: [['2026-27-home', '2026/27 home'], ['2026-27-away', '2026/27 away']],
     munster: [['2025-27-home', '2025-27 home'], ['2026-27-away', '2026/27 away'], ['2026-28-european', '2026-28 European']],

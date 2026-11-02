@@ -1,0 +1,53 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Head to head · Ireland Rugby</title></head><body>
+<script>IR.shell('h2h')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Head to head</h1><p class="note">Results since October 2020. Club friendlies and awarded games are left out.</p>
+<div class="filters"><select id="comp" aria-label="Competition"></select></div>
+<div class="two"><div><section class="card"><h2>Interpro table</h2><div id="ip"><p class="empty">Loading…</p></div></section><section class="card"><h2>Province v province</h2><div id="pairs"></div></section></div>
+<section class="card"><h2>Any match-up</h2><div class="filters"><select id="a" aria-label="Team"></select><select id="b" aria-label="Opponent"></select></div><div id="rec"></div><div id="list"></div></section></div></main>
+<script>
+(async () => {
+  const P = ['munster', 'leinster', 'ulster', 'connacht'];
+  const $ = (i) => document.getElementById(i);
+  const key = (t) => t.s || t.n;
+  const stat = (ms, k) => { const o = { p: 0, w: 0, d: 0, l: 0, pf: 0, pa: 0 }; for (const m of ms) { const [x, y] = key(m.h) === k ? m.score : [m.score[1], m.score[0]]; o.p++; o.pf += x; o.pa += y; if (x > y) o.w++; else if (x < y) o.l++; else o.d++; } return o; };
+  try {
+    const r = await fetch('/api/history'); const all = (await r.json()).filter((m) => /^Finished/.test(m.state) && m.score && m.compName !== 'Club Friendly').sort((a, b) => (a.date < b.date ? 1 : -1));
+    const comps = [...new Set(all.map((m) => m.compName))].sort();
+    $('comp').innerHTML = '<option value="">All competitions</option>' + comps.map((c) => `<option>${IR.esc(c)}</option>`).join('');
+    $('a').innerHTML = Object.entries(IR.TEAMS).map(([s, n]) => `<option value="${s}">${n}</option>`).join('');
+    const q = new URLSearchParams(location.search);
+    $('a').value = IR.TEAMS[q.get('a')] ? q.get('a') : 'munster';
+    let wantB = q.get('b') || 'leinster';
+    const scope = () => all.filter((m) => !$('comp').value || m.compName === $('comp').value);
+    const opps = () => { const a = $('a').value, seen = new Map(); for (const m of scope()) { if (key(m.h) === a) seen.set(key(m.a), m.a.n); else if (key(m.a) === a) seen.set(key(m.h), m.h.n); } return [...seen.entries()].sort((x, y) => x[1].localeCompare(y[1])); };
+    const fillB = () => { const o = opps(); $('b').innerHTML = o.map(([k, n]) => `<option value="${IR.esc(k)}">${IR.esc(n)}</option>`).join(''); if (o.some(([k]) => k === wantB)) $('b').value = wantB; };
+    const row = (m, a) => { const home = key(m.h) === a, r = IR.result({ ...m }, a), sc = (home ? m.score : [m.score[1], m.score[0]]).join('-'), opp = home ? m.a : m.h; return `<tr><td><a href="/match/?id=${m.id}">${home ? 'v' : 'at'} ${IR.esc(opp.n)}</a><small>${IR.fmtDay(m.date)} ${m.date.slice(0, 4)} · ${IR.esc(IR.compName(m))}</small></td><td><span class="res-${r}">${r}</span> ${sc}</td></tr>`; };
+    const drawPair = () => {
+      const a = $('a').value, b = $('b').value; wantB = b;
+      const ms = scope().filter((m) => (key(m.h) === a && key(m.a) === b) || (key(m.h) === b && key(m.a) === a));
+      const s = stat(ms, a);
+      const margin = (m) => { const [x, y] = key(m.h) === a ? m.score : [m.score[1], m.score[0]]; return x - y; };
+      const big = ms.slice().sort((x, y) => margin(y) - margin(x))[0];
+      $('rec').innerHTML = ms.length ? `<div class="rec"><div><b>${s.p}</b><span>Played</span></div><div><b>${s.w}</b><span>Won</span></div><div><b>${s.d}</b><span>Drawn</span></div><div><b>${s.l}</b><span>Lost</span></div><div><b>${s.pf}-${s.pa}</b><span>Points</span></div></div>${big && margin(big) > 0 ? `<p class="note" style="margin-bottom:8px">Biggest win: ${(key(big.h) === a ? big.score : [big.score[1], big.score[0]]).join('-')}, ${big.date.slice(0, 4)}</p>` : ''}` : '<p class="empty">No matches.</p>';
+      $('list').innerHTML = ms.length ? '<table class="pl"><tbody>' + ms.map((m) => row(m, a)).join('') + '</tbody></table>' : '';
+      history.replaceState(null, '', `?a=${a}&b=${encodeURIComponent(b)}`);
+    };
+    const drawIp = () => {
+      const ms = scope().filter((m) => P.includes(m.h.s) && P.includes(m.a.s));
+      const rows = P.map((t) => { const s = stat(ms.filter((m) => m.h.s === t || m.a.s === t), t); return { t, ...s }; }).sort((x, y) => y.w / (y.p || 1) - x.w / (x.p || 1));
+      $('ip').innerHTML = ms.length ? '<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="wide">PF</th><th class="wide">PA</th><th>Win %</th></tr></thead><tbody>' + rows.map((r, i) => `<tr><td>${i + 1}</td><td class="tm"><a class="tmi" href="/${r.t}/">${IR.logo({ s: r.t, n: r.t })}${IR.TEAMS[r.t]}</a></td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="wide">${r.pf}</td><td class="wide">${r.pa}</td><td class="pts">${(100 * r.w / (r.p || 1)).toFixed(1)}</td></tr>`).join('') + '</tbody></table>' : '<p class="empty">No interpro matches in this competition.</p>';
+      let out = '';
+      for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+        const x = P[i], y = P[j], g = ms.filter((m) => (m.h.s === x && m.a.s === y) || (m.h.s === y && m.a.s === x)), s = stat(g, x);
+        if (g.length) out += `<tr><td><a href="?a=${x}&b=${y}" data-a="${x}" data-b="${y}">${IR.TEAMS[x]} v ${IR.TEAMS[y]}</a></td><td>${s.w}-${s.d}-${s.l}</td></tr>`;
+      }
+      $('pairs').innerHTML = out ? '<table class="pl"><thead><tr><th>Match-up</th><th>W-D-L (first team)</th></tr></thead><tbody>' + out + '</tbody></table>' : '<p class="empty">None.</p>';
+    };
+    const draw = () => { fillB(); drawIp(); drawPair(); };
+    $('comp').onchange = draw; $('a').onchange = draw; $('b').onchange = drawPair;
+    $('pairs').onclick = (e) => { const l = e.target.closest('a'); if (!l) return; e.preventDefault(); $('a').value = l.dataset.a; wantB = l.dataset.b; draw(); $('rec').scrollIntoView({ block: 'nearest' }); };
+    draw();
+  } catch (e) { IR.fail($('ip')); }
+  IR.footer(null);
+})();
+</script></body></html>

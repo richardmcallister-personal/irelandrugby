@@ -68,13 +68,15 @@ const IR = (() => {
   }
 
   function shell(active) {
-    const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${active === s ? ' aria-current="page"' : ''}>${n}</a>`).join('');
-    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Main">${nav}<a href="/tables/"${active === 'tables' ? ' aria-current="page"' : ''}>Tables</a><a href="/players/"${active === 'players' ? ' aria-current="page"' : ''}>Players</a><a href="/selection/"${active === 'selection' ? ' aria-current="page"' : ''}>Selection</a></nav></div><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
+    const on = (k) => (active === k ? ' aria-current="page"' : '');
+    const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${on(s)}>${n}</a>`).join('');
+    const sub = [['tables', 'Tables'], ['players', 'Players'], ['selection', 'Selection'], ['scorers', 'Scorers'], ['h2h', 'Head to head'], ['history', 'History'], ['shirts', 'Shirts']].map(([k, n]) => `<a href="/${k}/"${on(k)}>${n}</a>`).join('');
+    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Teams">${nav}</nav></div><nav class="sub" aria-label="Sections"><div>${sub}</div></nav><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
   }
 
   function footer(updated) {
     const u = updated ? ' Last update: ' + fmt(new Date(updated), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }) + '.' : '';
-    document.body.insertAdjacentHTML('beforeend', `<footer class="foot"><p>Results and tables update every few hours, so scores are not live.${u}</p><p>Provincial fixtures are copied from the teams' published lists and can change. Results data: Highlightly.</p><p>Unofficial fan site. Not connected with the IRFU, the provinces or any competition. Crests, logos and kits belong to their owners.</p></footer>`);
+    document.body.insertAdjacentHTML('beforeend', `<footer class="foot"><p>Results and tables update every few hours, so scores are not live.${u}</p><p>Provincial fixtures are copied from the teams' published lists and can change. Results data: Highlightly. Scorers: Wikipedia (CC BY-SA).</p><p>Unofficial fan site. Not connected with the IRFU, the provinces or any competition. Crests, logos and kits belong to their owners.</p></footer>`);
   }
 
   // Same key as the Worker builds, so match pages can link to player pages.
@@ -106,6 +108,10 @@ const IR = (() => {
     return { people, hist, store, have, total: finished.length };
   }
 
+  // Scorers from Wikipedia; h and a are sides, each {try, con, pen, drop} of [full, shown, count, minutes].
+  const scoreLine = (rows, label) => rows.length ? `<p class="scl"><b>${label}</b> ${rows.map((r) => esc(/penalty try/i.test(r[0]) ? 'Penalty try' : r[1]) + (r[2] > 1 ? ' ' + r[2] : '') + (label === 'Tries' && r[3].length ? ` <small>${r[3].map((m) => m + "'").join(', ')}</small>` : '')).join(', ')}</p>` : '';
+  const sideScorers = (s) => scoreLine(s.try, 'Tries') + scoreLine(s.con, 'Conversions') + scoreLine(s.pen, 'Penalties') + scoreLine(s.drop, 'Drop goals');
+
   const fail = (el) => { el.innerHTML = '<p class="empty">Could not load the data. Please try again shortly.</p>'; };
-  return { POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
+  return { sideScorers, POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
 })();

@@ -16,7 +16,7 @@
     document.getElementById('jump').innerHTML = codes.map((c) => `<a href="#${c}">${IR.esc(IR.COMP[c][1])}</a>`).join('');
     el.innerHTML = codes.map((c) => {
       const gs = d.tables[c];
-      return `<section class="card" id="${c}"><div class="comphd"><img src="/img/comp/${IR.COMP[c][2]}.webp" alt="" height="34"><h2>${IR.esc(IR.COMP[c][0])}</h2></div>` + gs.map((g) => (gs.length > 1 ? `<div class="grp">${IR.esc((g.name || '').replace(/^.*,\s*/, ''))}</div>` : '') + tbl(g.rows)).join('') + '</section>';
+      return `<section class="card" id="${c}"><div class="comphd"><img src="/img/comp/${IR.COMP[c][2]}.webp" alt="" height="34"${c === 'urc' ? ' class="lightbg"' : ''}><h2>${IR.esc(IR.COMP[c][0])}</h2></div>` + gs.map((g) => (gs.length > 1 ? `<div class="grp">${IR.esc((g.name || '').replace(/^.*,\s*/, ''))}</div>` : '') + tbl(g.rows)).join('') + '</section>';
     }).join('') || '<p class="empty">No tables yet.</p>';
     IR.footer(d.updated);
   } catch (e) { IR.fail(el); IR.footer(null); }

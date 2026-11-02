@@ -1,0 +1,36 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Player · Ireland Rugby</title></head><body>
+<script>IR.shell('players')</script>
+<main id="main" class="wrap"><div id="p"><p class="empty">Loading…</p></div></main>
+<script>
+(async () => {
+  const el = document.getElementById('p');
+  const id = new URLSearchParams(location.search).get('id');
+  try {
+    const D = await IR.squadData();
+    const p = D.people.find((x) => x.k === id);
+    if (!p) { el.innerHTML = '<section class="card"><h1 class="pagehd">Player not found yet</h1><p class="empty">Team sheets are still being collected, so this player may appear soon. <a href="/players/">See all players</a>.</p></section>'; IR.footer(null); return; }
+    document.title = p.n + ' · Ireland Rugby';
+    const age = p.b ? Math.floor((Date.now() - Date.parse(p.b)) / (365.2425 * 86400e3)) : null;
+    const born = p.b ? new Date(p.b).toLocaleDateString('en-IE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+    const facts = [['Position', p.pos], age ? ['Age', age] : null, p.h ? ['Height', p.h] : null, p.c ? ['Country', p.c] : null].filter(Boolean);
+    const teams = [...new Set(p.sel.map((s) => s.team))];
+    const rows = teams.map((t) => { const s = p.sel.filter((x) => x.team === t); return { t, st: s.filter((x) => x.no <= 15).length, be: s.filter((x) => x.no > 15).length, first: s[s.length - 1].m.date, last: s[0].m.date }; }).sort((a, b) => (b.st + b.be) - (a.st + a.be));
+    const fy = (iso) => IR.fmtDay(iso) + ' ' + iso.slice(0, 4);
+    const line = (s) => {
+      const m = s.m, opp = m.h.s === s.team ? m.a : m.h, home = m.h.s === s.team, r = IR.result(m, s.team);
+      const sc = m.score ? (home ? m.score : [m.score[1], m.score[0]]).join('-') : '';
+      return `<tr><td><a href="/match/?id=${m.id}">${home ? 'v' : 'at'} ${IR.esc(opp.n)}</a><small>${fy(m.date)} · ${IR.esc(IR.compName(m))}${teams.length > 1 ? ' · ' + IR.TEAMS[s.team] : ''}</small></td><td><span class="res-${r}">${r || ''}</span> ${sc}</td><td>${s.no}${s.no <= 15 ? '' : ' (bench)'}</td></tr>`;
+    };
+    let shown = 25;
+    el.innerHTML = `<h1 class="pagehd">${IR.esc(p.n)}</h1>${born ? `<p class="note" style="margin:0 0 12px">Born ${born}</p>` : ''}
+      <section class="card"><dl class="facts">${facts.map(([a, b]) => `<div><dt>${a}</dt><dd>${IR.esc(b)}</dd></div>`).join('')}</dl></section>
+      <section class="card"><h2>By team</h2><table class="pl"><thead><tr><th>Team</th><th>Started</th><th>Bench</th><th>First</th><th>Latest</th></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="/${r.t}/">${IR.TEAMS[r.t]}</a></td><td>${r.st}</td><td>${r.be}</td><td>${r.first.slice(0, 4)}</td><td>${r.last.slice(0, 4)}</td></tr>`).join('')}</tbody></table>
+      <p class="note">From team sheets collected so far (${D.have} of ${D.total} matches since autumn 2020). Bench means named as a replacement, who may not have come on. Not official cap counts.</p></section>
+      <section class="card"><h2>Matches</h2><table class="pl"><thead><tr><th>Match</th><th>Result</th><th>Shirt</th></tr></thead><tbody id="ms"></tbody></table><button class="more" id="more" hidden>Show more</button></section>`;
+    const ms = document.getElementById('ms'), more = document.getElementById('more');
+    const draw = () => { ms.innerHTML = p.sel.slice(0, shown).map(line).join(''); more.hidden = shown >= p.sel.length; };
+    more.onclick = () => { shown += 100; draw(); }; draw();
+  } catch (e) { IR.fail(el); }
+  IR.footer(null);
+})();
+</script></body></html>

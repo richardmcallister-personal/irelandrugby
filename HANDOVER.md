@@ -1,10 +1,11 @@
 # Ireland rugby: handover (2 Nov 2026)
 
 ## State
-First pages live: home, five team pages, tables, match page with team sheets and highlights. Noindex, not announced.
+Live: home, five team pages, tables, match pages, players, player pages, Ireland selection by province. Noindex, not announced.
+Team sheets since 2020 are collecting newest first: about 65 calls a day on quiet days, up to 20 per 6-hour run. Progress shows on /players/.
 
 ## Next task
-Player pages (appearances for each province and Ireland). Team sheets are building up in KV under `m:<id>`, about 6 matches per 6-hour run.
+None in progress. Wait for collection, then check totals on /players/ and /selection/.
 
 ## Open items
 - Fixtures need re-checking against the teams' sites (`tools/fixtures_src.txt`), and Ireland's Six Nations 2027 games added if the feed lacks them.

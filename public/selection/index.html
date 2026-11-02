@@ -1,0 +1,47 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Ireland selection by province · Ireland Rugby</title></head><body>
+<script>IR.shell('selection')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Ireland by province</h1>
+<p class="note" id="cov"></p>
+<div class="filters"><select id="sea" aria-label="Season"></select></div>
+<div class="two"><section class="card"><h2>Season totals</h2><div id="tot"><p class="empty">Loading…</p></div></section>
+<section class="card"><h2>Match by match</h2><div class="legend" id="leg"></div><div id="list"></div></section></div></main>
+<script>
+(async () => {
+  const PROV = ['munster', 'leinster', 'ulster', 'connacht'];
+  const tot = document.getElementById('tot'), list = document.getElementById('list'), sea = document.getElementById('sea');
+  document.getElementById('leg').innerHTML = PROV.map((s) => `<span><i style="background:var(--${s})"></i>${IR.TEAMS[s]}</span>`).join('') + '<span><i style="background:#6c746f"></i>Other</span>';
+  const bar = (c) => { const n = Object.values(c).reduce((a, b) => a + b, 0); return `<div class="bar">` + PROV.concat('other').filter((s) => c[s]).map((s) => `<span class="${s === 'other' ? 'other' : ''}" style="flex:${c[s]} 1 0;${s === 'other' ? '' : `background:var(--${s})`}" title="${s === 'other' ? 'Other' : IR.TEAMS[s]}: ${c[s]}">${c[s]}</span>`).join('') + '</div>'; };
+  try {
+    const D = await IR.squadData();
+    // Each Ireland player's province at the time: his latest provincial selection on or before the match, or failing that his next one.
+    const provOf = (p, date) => {
+      const prov = p.sel.filter((s) => s.team !== 'ireland');
+      const before = prov.find((s) => s.m.date <= date);
+      if (before) return before.team;
+      const after = prov[prov.length - 1];
+      return after ? after.team : 'other';
+    };
+    const games = new Map();
+    for (const p of D.people) for (const s of p.sel) if (s.team === 'ireland') {
+      const g = games.get(s.m.id) || { m: s.m, xv: {}, bench: {} };
+      const pr = provOf(p, s.m.date), box = s.no <= 15 ? g.xv : g.bench;
+      box[pr] = (box[pr] || 0) + 1;
+      games.set(s.m.id, g);
+    }
+    const all = [...games.values()].sort((a, b) => (a.m.date < b.m.date ? 1 : -1));
+    document.getElementById('cov').textContent = `Ireland's matchday squads, grouped by each player's province at the time, worked out from provincial team sheets. ${D.have} of ${D.total} matches collected so far, newest first, so older seasons will show more players as "Other" until collection finishes.`;
+    const seasons = [...new Set(all.map((g) => IR.season(g.m.date)))];
+    sea.innerHTML = seasons.map((s) => `<option>${s}</option>`).join('') + '<option value="">Since 2020</option>';
+    const draw = () => {
+      const gs = all.filter((g) => !sea.value || IR.season(g.m.date) === sea.value);
+      const sum = (k) => { const o = {}; for (const g of gs) for (const [a, b] of Object.entries(g[k])) o[a] = (o[a] || 0) + b; return o; };
+      const xv = sum('xv'), be = sum('bench');
+      const n = Object.values(xv).reduce((a, b) => a + b, 0);
+      tot.innerHTML = gs.length ? `<p class="sub" style="margin:0 0 4px">Starting places across ${gs.length} match${gs.length === 1 ? '' : 'es'}</p>${bar(xv)}<p class="sub" style="margin:10px 0 4px">Replacements</p>${bar(be)}<table class="pl" style="margin-top:12px"><thead><tr><th>Province</th><th>Started</th><th>Bench</th><th>Share of starts</th></tr></thead><tbody>${PROV.concat('other').filter((s) => xv[s] || be[s]).map((s) => `<tr><td>${s === 'other' ? 'Other' : IR.TEAMS[s]}</td><td>${xv[s] || 0}</td><td>${be[s] || 0}</td><td>${n ? (100 * (xv[s] || 0) / n).toFixed(1) : '0.0'}%</td></tr>`).join('')}</tbody></table>` : '<p class="empty">No team sheets yet.</p>';
+      list.innerHTML = gs.map((g) => { const m = g.m, home = m.h.s === 'ireland', opp = home ? m.a : m.h; const r = IR.result(m, 'ireland'); const sc = m.score ? (home ? m.score : [m.score[1], m.score[0]]).join('-') : ''; return `<a class="selrow" href="/match/?id=${m.id}"><div class="tt"><span>${home ? 'v' : 'at'} ${IR.esc(opp.n)} <span class="res-${r}">${r || ''}</span> ${sc}</span><small>${IR.fmtDay(m.date)} ${m.date.slice(0, 4)}</small></div><div class="sub">Starting XV</div>${bar(g.xv)}<div class="sub">Replacements</div>${bar(g.bench)}</a>`; }).join('') || '<p class="empty">No team sheets yet.</p>';
+    };
+    sea.onchange = draw; draw();
+  } catch (e) { IR.fail(tot); IR.fail(list); }
+  IR.footer(null);
+})();
+</script></body></html>

@@ -7,13 +7,14 @@
   const b = document.getElementById('b');
   const id = new URLSearchParams(location.search).get('id');
   const sheet = (t, ps) => {
+    const nm = (p) => IR.irish(t) ? `<a href="/player/?id=${IR.playerKey(p.n, p.born)}">${IR.esc(p.n)}</a>` : IR.esc(p.n);
     let rows = '';
     for (let n = 1; n <= 15; n++) {
       const p = ps.find((x) => x.no === n);
-      rows += p ? `<tr><td class="no">${n}</td><td>${IR.esc(p.n)}</td><td class="pos">${POS[n]}</td></tr>` : `<tr class="gap"><td class="no">${n}</td><td>Not listed by the feed</td><td class="pos">${POS[n]}</td></tr>`;
+      rows += p ? `<tr><td class="no">${n}</td><td>${nm(p)}</td><td class="pos">${POS[n]}</td></tr>` : `<tr class="gap"><td class="no">${n}</td><td>Not listed by the feed</td><td class="pos">${POS[n]}</td></tr>`;
     }
     const bench = ps.filter((p) => p.no > 15);
-    if (bench.length) rows += '<tr class="benchhd"><td colspan="3">Replacements</td></tr>' + bench.map((p) => `<tr><td class="no">${p.no}</td><td colspan="2">${IR.esc(p.n)}</td></tr>`).join('');
+    if (bench.length) rows += '<tr class="benchhd"><td colspan="3">Replacements</td></tr>' + bench.map((p) => `<tr><td class="no">${p.no}</td><td colspan="2">${nm(p)}</td></tr>`).join('');
     return `<section class="card"><h2>${IR.esc(t.n)}</h2><table class="sheet"><tbody>${rows}</tbody></table></section>`;
   };
   try {

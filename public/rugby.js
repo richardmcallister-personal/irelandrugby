@@ -69,7 +69,7 @@ const IR = (() => {
 
   function shell(active) {
     const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${active === s ? ' aria-current="page"' : ''}>${n}</a>`).join('');
-    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Main">${nav}<a href="/tables/"${active === 'tables' ? ' aria-current="page"' : ''}>Tables</a></nav></div><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
+    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Main">${nav}<a href="/tables/"${active === 'tables' ? ' aria-current="page"' : ''}>Tables</a><a href="/players/"${active === 'players' ? ' aria-current="page"' : ''}>Players</a><a href="/selection/"${active === 'selection' ? ' aria-current="page"' : ''}>Selection</a></nav></div><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
   }
 
   function footer(updated) {
@@ -77,6 +77,35 @@ const IR = (() => {
     document.body.insertAdjacentHTML('beforeend', `<footer class="foot"><p>Results and tables update every few hours, so scores are not live.${u}</p><p>Provincial fixtures are copied from the teams' published lists and can change. Results data: Highlightly.</p><p>Unofficial fan site. Not connected with the IRFU, the provinces or any competition. Crests, logos and kits belong to their owners.</p></footer>`);
   }
 
+  // Same key as the Worker builds, so match pages can link to player pages.
+  const norm = (n) => String(n || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[’'`.]/g, '').toLowerCase().trim();
+  const playerKey = (n, born) => norm(n).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + (born ? '-' + born.slice(0, 4) : '');
+  const POS = { 1: 'Loosehead prop', 2: 'Hooker', 3: 'Tighthead prop', 4: 'Lock', 5: 'Lock', 6: 'Flanker', 7: 'Flanker', 8: 'Number 8', 9: 'Scrum-half', 10: 'Fly-half', 11: 'Wing', 12: 'Centre', 13: 'Centre', 14: 'Wing', 15: 'Full-back' };
+  const season = (iso) => { const d = new Date(iso), y = d.getUTCFullYear(), s = d.getUTCMonth() >= 6 ? y : y - 1; return s + '/' + String(s + 1).slice(2); };
+
+  // Everyone selected for our five teams: each person gets a list of {m, team, no}, newest first.
+  async function squadData() {
+    const [pr, hr] = await Promise.all([fetch('/api/players'), fetch('/api/history')]);
+    if (!pr.ok || !hr.ok) throw new Error('players');
+    const store = await pr.json(), hist = await hr.json();
+    const byId = new Map(hist.map((m) => [m.id, m]));
+    const people = store.people.map((p) => ({ ...p, sel: [] }));
+    let have = 0;
+    for (const [id, a] of Object.entries(store.apps)) {
+      const m = byId.get(Number(id));
+      if (!m || !a) continue;
+      have++;
+      for (const [side, t] of [['h', m.h.s], ['a', m.a.s]]) for (const [i, no] of a[side] || []) people[i]?.sel.push({ m, team: t, no });
+    }
+    for (const p of people) {
+      p.sel.sort((x, y) => (x.m.date < y.m.date ? 1 : -1));
+      const c = {}; for (const s of p.sel) if (s.no <= 15) c[POS[s.no]] = (c[POS[s.no]] || 0) + 1;
+      p.pos = Object.entries(c).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Replacement';
+    }
+    const finished = hist.filter((m) => /^Finished/.test(m.state));
+    return { people, hist, store, have, total: finished.length };
+  }
+
   const fail = (el) => { el.innerHTML = '<p class="empty">Could not load the data. Please try again shortly.</p>'; };
-  return { TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
+  return { POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
 })();

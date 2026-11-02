@@ -1,0 +1,37 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b3d2a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Players · Ireland Rugby</title></head><body>
+<script>IR.shell('players')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Players</h1>
+<p class="note" id="cov"></p>
+<div class="filters"><input id="q" type="search" placeholder="Search by name" aria-label="Search by name"><select id="team" aria-label="Team"><option value="">All teams</option></select><select id="sea" aria-label="Season"><option value="">Since 2020</option></select></div>
+<section class="card"><table class="pl"><thead><tr><th>Player</th><th>Teams</th><th>Started</th><th>Bench</th></tr></thead><tbody id="rows"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table><button class="more" id="more" hidden>Show more</button></section></main>
+<script>
+(async () => {
+  const rows = document.getElementById('rows'), q = document.getElementById('q'), team = document.getElementById('team'), sea = document.getElementById('sea'), more = document.getElementById('more');
+  for (const [s, n] of Object.entries(IR.TEAMS)) team.insertAdjacentHTML('beforeend', `<option value="${s}">${n}</option>`);
+  let shown = 60, D;
+  const draw = () => {
+    const nq = q.value.trim().toLowerCase();
+    const list = [];
+    for (const p of D.people) {
+      if (nq && !p.n.toLowerCase().includes(nq)) continue;
+      const sel = p.sel.filter((s) => (!team.value || s.team === team.value) && (!sea.value || IR.season(s.m.date) === sea.value));
+      if (!sel.length) continue;
+      list.push({ p, st: sel.filter((s) => s.no <= 15).length, be: sel.filter((s) => s.no > 15).length, teams: [...new Set(sel.map((s) => s.team))] });
+    }
+    list.sort((a, b) => (b.st + b.be) - (a.st + a.be) || a.p.n.localeCompare(b.p.n));
+    rows.innerHTML = list.slice(0, shown).map(({ p, st, be, teams }) => `<tr><td><a href="/player/?id=${encodeURIComponent(p.k)}">${IR.esc(p.n)}</a><small>${IR.esc(p.pos)}</small></td><td><span class="dots">${teams.map((t) => IR.logo({ s: t, n: t })).join('')}</span></td><td>${st}</td><td>${be}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">No players match.</td></tr>';
+    more.hidden = shown >= list.length;
+  };
+  try {
+    D = await IR.squadData();
+    document.getElementById('cov').textContent = `Selections since autumn 2020, from team sheets collected so far: ${D.have} of ${D.total} matches. These count being named in the matchday squad, so bench players may not have come on. They are not official cap counts.`;
+    const seasons = [...new Set(D.hist.map((m) => IR.season(m.date)))].sort().reverse();
+    for (const s of seasons) sea.insertAdjacentHTML('beforeend', `<option>${s}</option>`);
+    const tq = new URLSearchParams(location.search).get('team'); if (IR.TEAMS[tq]) team.value = tq;
+    q.oninput = team.onchange = sea.onchange = () => { shown = 60; draw(); };
+    more.onclick = () => { shown += 100; draw(); };
+    draw();
+  } catch (e) { rows.innerHTML = '<tr><td colspan="4" class="empty">Could not load the players. Please try again shortly.</td></tr>'; }
+  IR.footer(null);
+})();
+</script></body></html>

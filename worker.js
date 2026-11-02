@@ -6,8 +6,10 @@ import FIXTURES from './fixtures.json';
 const FEED = 'https://rugby.highlightly.net';
 const DAILY_CAP = 80;      // our own ceiling, below the free plan's 100
 const FEED_FLOOR = 10;     // stop if the feed says fewer than this remain
-const TABLE_AGE = 12 * 3600e3;
-const DETAILS_PER_RUN = 6;
+const TABLE_AGE = 24 * 3600e3;
+const ARCHIVE_AGE = 7 * 86400e3;
+const DETAILS_PER_RUN = 20;
+const FRESH = 14 * 86400e3; // younger matches keep being re-checked for late team sheets
 
 const TEAMS = { ireland: 330972, munster: 347992, leinster: 347141, ulster: 348843, connacht: 339482 };
 const COMPS = { 65460: 'urc', 46738: 'cc', 45036: 'ch', 44185: 'six', 124179: 'nc', 72268: 'test', 79927: 'anc' };
@@ -71,68 +73,163 @@ function slimMatch(m) {
 }
 
 // --- scheduled refresh ---------------------------------------------------------
+// Lists only when a match may have finished since last time, or once a day. That leaves the
+// rest of the daily allowance for collecting team sheets.
+function matchDue(prev) {
+  if (!prev.updated || Date.now() - prev.updated > 24 * 3600e3) return true;
+  const from = prev.updated - 3 * 3600e3, to = Date.now();
+  const hit = (d) => { const t = Date.parse(d); return t >= from && t <= to; };
+  return (prev.feed || []).some((m) => hit(m.date)) || FIXTURES.some((f) => hit(f.date));
+}
+
+async function loadList(env, side, id, limit) {
+  const out = [];
+  let offset = 0;
+  for (let page = 0; page < 3; page++) {
+    const r = await feed(env, '/matches', { [side]: id, limit, offset });
+    if (!r?.data) return page ? out : null;
+    out.push(...r.data.map(slimMatch));
+    offset += limit;
+    if (limit < 100 || offset >= (r.pagination?.totalCount || 0)) break;
+  }
+  return out;
+}
+
 async function refresh(env) {
   if (await env.CACHE.get('lock')) return;
   await env.CACHE.put('lock', '1', { expirationTtl: 120 });
-  const prev = JSON.parse((await env.CACHE.get('data')) || '{}');
-  const rows = new Map();
-  let ok = 0;
-  for (const id of Object.values(TEAMS)) {
-    for (const side of ['homeTeamId', 'awayTeamId']) {
-      const r = await feed(env, '/matches', { [side]: id, limit: 30 });
-      if (!r?.data) continue;
-      ok++;
-      for (const m of r.data) rows.set(m.id, slimMatch(m));
+  try {
+    const prev = JSON.parse((await env.CACHE.get('data')) || '{}');
+    const due = matchDue(prev);
+    let feedMatches = prev.feed || [];
+    if (due) {
+      const rows = new Map();
+      let ok = 0;
+      for (const id of Object.values(TEAMS)) {
+        for (const side of ['homeTeamId', 'awayTeamId']) {
+          const list = await loadList(env, side, id, 30);
+          if (!list) continue;
+          ok++;
+          for (const m of list) rows.set(m.id, m);
+        }
+      }
+      if (ok) feedMatches = [...rows.values()];
     }
-  }
-  const feedMatches = ok ? [...rows.values()] : (prev.feed || []);
 
-  let tables = prev.tables || {};
-  if (!prev.tablesAt || Date.now() - prev.tablesAt > TABLE_AGE) {
-    const next = {};
-    for (const [code, id] of TABLES) {
-      const season = 2026;
-      const r = await feed(env, '/standings', { leagueId: id, season });
-      if (!r?.groups) { if (tables[code]) next[code] = tables[code]; continue; }
-      next[code] = r.groups.map((g) => ({
-        name: g.name || null,
-        rows: (g.standings || []).map((s) => ({
-          pos: s.position, ...team(s.team), p: s.gamesPlayed, w: s.wins, d: s.draws, l: s.loses, pf: s.scoredPoints, pa: s.receivedPoints, pts: s.points,
-        })),
-      }));
+    let tables = prev.tables || {};
+    let tablesAt = prev.tablesAt;
+    if (!tablesAt || Date.now() - tablesAt > TABLE_AGE || (due && prev.updated)) {
+      const next = {};
+      for (const [code, id] of TABLES) {
+        const r = await feed(env, '/standings', { leagueId: id, season: 2026 });
+        if (!r?.groups) { if (tables[code]) next[code] = tables[code]; continue; }
+        next[code] = r.groups.map((g) => ({
+          name: g.name || null,
+          rows: (g.standings || []).map((s) => ({
+            pos: s.position, ...team(s.team), p: s.gamesPlayed, w: s.wins, d: s.draws, l: s.loses, pf: s.scoredPoints, pa: s.receivedPoints, pts: s.points,
+          })),
+        }));
+      }
+      tables = next;
+      tablesAt = Date.now();
     }
-    tables = next;
-    prev.tablesAt = Date.now();
-  }
+    await env.CACHE.put('data', JSON.stringify({ updated: due ? Date.now() : prev.updated, tablesAt, feed: feedMatches, tables }));
 
-  await env.CACHE.put('data', JSON.stringify({ updated: Date.now(), tablesAt: prev.tablesAt, feed: feedMatches, tables }));
-  await env.CACHE.delete('lock');
-  await fillDetails(env, feedMatches);
+    // Every match since 2020, refreshed weekly: this is what player pages hang off.
+    const archived = JSON.parse((await env.CACHE.get('archive')) || '{}');
+    let old = archived.rows || [];
+    if (!archived.at || Date.now() - archived.at > ARCHIVE_AGE) {
+      const rows = new Map();
+      for (const id of Object.values(TEAMS)) {
+        for (const side of ['homeTeamId', 'awayTeamId']) {
+          for (const m of (await loadList(env, side, id, 100)) || []) rows.set(m.id, m);
+        }
+      }
+      if (rows.size) {
+        old = [...rows.values()];
+        await env.CACHE.put('archive', JSON.stringify({ at: Date.now(), rows: old }));
+      }
+    }
+    const all = new Map(old.map((m) => [m.id, m]));
+    for (const m of feedMatches) all.set(m.id, m);
+    const history = [...all.values()];
+    await env.CACHE.put('history', JSON.stringify(history));
+    await fillSheets(env, history);
+  } finally {
+    await env.CACHE.delete('lock');
+  }
 }
 
-// Team sheets for finished matches, newest first, a few per run. These build up the player data for later.
-async function fillDetails(env, matches) {
+const IRISH = new Set(Object.keys(TEAMS));
+const norm = (n) => String(n || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[’'`.]/g, '').toLowerCase().trim();
+const playerKey = (n, born) => norm(n).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + (born ? '-' + born.slice(0, 4) : '');
+
+// Compact store: people, plus for each match the [person, shirt] pairs for our teams' sides.
+// A match is 0 when no team sheet ever arrived. Pages do the adding up in the browser.
+function addSide(store, index, side) {
+  return side.map((p) => {
+    const name = norm(p.n);
+    let i = p.born ? index.get(name + '|' + p.born) : undefined;
+    if (i === undefined) i = index.get(name + '|') ;
+    if (i === undefined && !p.born) i = index.get(name + '|*');
+    if (i === undefined) {
+      i = store.people.length;
+      store.people.push({ k: playerKey(p.n, p.born), n: p.n, b: p.born || null, h: p.ht || null, c: p.c || null });
+    } else if (p.born && !store.people[i].b) {
+      store.people[i].b = p.born;
+      store.people[i].k = playerKey(p.n, p.born);
+    }
+    index.set(name + '|' + (store.people[i].b || ''), i);
+    index.set(name + '|*', i);
+    return [i, p.no];
+  });
+}
+
+async function fillSheets(env, matches) {
+  const store = JSON.parse((await env.CACHE.get('players')) || '{"people":[],"apps":{}}');
+  const index = new Map();
+  store.people.forEach((p, i) => { index.set(norm(p.n) + '|' + (p.b || ''), i); index.set(norm(p.n) + '|*', i); });
   const done = matches.filter((m) => /^Finished/.test(m.state)).sort((a, b) => (a.date < b.date ? 1 : -1));
-  let spent = 0;
+  let spent = 0, reads = 0, dirty = 0;
+  const save = async () => { if (dirty) { await env.CACHE.put('players', JSON.stringify(store)); dirty = 0; } };
   for (const m of done) {
-    if (spent >= DETAILS_PER_RUN) break;
-    const have = JSON.parse((await env.CACHE.get('m:' + m.id)) || 'null');
-    if (have && !stale(have, m)) continue;
-    if (!(await loadDetail(env, m))) break;
-    spent++;
+    if (store.apps[m.id] !== undefined) continue;
+    if (spent >= DETAILS_PER_RUN || reads >= 300) break;
+    reads++;
+    let rec = JSON.parse((await env.CACHE.get('m:' + m.id)) || 'null');
+    if (!rec || stale(rec, m)) {
+      const got = await loadDetail(env, m, Date.now() - Date.parse(m.date) < FRESH);
+      if (!got) break; // out of calls for today
+      rec = got;
+      spent++;
+    }
+    const home = rec.lineups?.home || [], away = rec.lineups?.away || [];
+    if (!home.length && !away.length) {
+      if (Date.now() - Date.parse(m.date) > FRESH) { store.apps[m.id] = 0; dirty++; }
+      continue;
+    }
+    store.apps[m.id] = { h: IRISH.has(m.h.s) ? addSide(store, index, home) : null, a: IRISH.has(m.a.s) ? addSide(store, index, away) : null };
+    if (++dirty >= 8) await save();
   }
+  await save();
 }
 
 function stale(rec, m) {
   const sheets = rec.lineups && (rec.lineups.home.length || rec.lineups.away.length);
   if (/^Finished/.test(m.state) && sheets) return false;
+  if (Date.now() - Date.parse(m.date) > FRESH && /^Finished/.test(m.state)) return false; // it isn't coming now
   return Date.now() - rec.at > 24 * 3600e3;
 }
 
 const slimPlayer = (p) => ({ n: p.name, no: p.shirtNumber, born: (p.birth || '').slice(0, 10) || null, ht: p.height || null, c: p.countryName || null });
 const slimSide = (s) => (s ? [...(s.initialLineup || []), ...(s.substitutions || [])].map(slimPlayer).sort((a, b) => a.no - b.no) : []);
 
-async function loadDetail(env, m) {
+async function loadHighlights(env, id) {
+  const h = await feed(env, '/highlights', { matchId: id, limit: 4 });
+  return (h?.data || []).filter((x) => /^https:/.test(x.url || '')).map((x) => ({ title: x.title, url: x.url, img: /^https:/.test(x.imgUrl || '') ? x.imgUrl : null, channel: x.channel || null, verified: x.type === 'VERIFIED' }));
+}
+
+async function loadDetail(env, m, withHighlights = true) {
   const r = await feed(env, '/matches/' + m.id);
   const d = Array.isArray(r) ? r[0] : (Array.isArray(r?.data) ? r.data[0] : r?.data || r);
   if (!d?.id) return null;
@@ -142,11 +239,9 @@ async function loadDetail(env, m) {
     referee: d.referee?.name || null,
     lineups: { home: slimSide(d.lineups?.home), away: slimSide(d.lineups?.away) },
     highlights: [],
+    hl: false,
   };
-  if (/^Finished/.test(m.state)) {
-    const h = await feed(env, '/highlights', { matchId: m.id, limit: 4 });
-    rec.highlights = (h?.data || []).filter((x) => /^https:/.test(x.url || '')).map((x) => ({ title: x.title, url: x.url, img: /^https:/.test(x.imgUrl || '') ? x.imgUrl : null, channel: x.channel || null, verified: x.type === 'VERIFIED' }));
-  }
+  if (withHighlights && /^Finished/.test(m.state)) { rec.highlights = await loadHighlights(env, m.id); rec.hl = true; }
   await env.CACHE.put('m:' + m.id, JSON.stringify(rec));
   return rec;
 }
@@ -175,11 +270,24 @@ async function apiData(env, ctx) {
 async function apiMatch(env, url) {
   const id = Number(url.searchParams.get('id'));
   const store = JSON.parse((await env.CACHE.get('data')) || '{}');
-  const m = (store.feed || []).find((x) => x.id === id);
+  let m = (store.feed || []).find((x) => x.id === id);
+  if (!m) m = JSON.parse((await env.CACHE.get('history')) || '[]').find((x) => x.id === id);
   if (!m) return json({ error: 'not found' }, 404);
   let rec = JSON.parse((await env.CACHE.get('m:' + id)) || 'null');
   if (!rec || stale(rec, m)) rec = (await loadDetail(env, m)) || rec;
+  if (rec && !rec.hl && !rec.highlights?.length && /^Finished/.test(m.state)) {
+    rec.highlights = await loadHighlights(env, id);
+    rec.hl = true;
+    await env.CACHE.put('m:' + id, JSON.stringify(rec));
+  }
   return json({ match: m, detail: rec }, 200, 300);
+}
+
+// Passed straight through from KV without parsing; the browser does the adding up.
+async function apiRaw(env, ctx, key, empty) {
+  const raw = await env.CACHE.get(key);
+  if (!raw) ctx.waitUntil(refresh(env));
+  return new Response(raw || empty, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=600' } });
 }
 
 export default {
@@ -189,6 +297,8 @@ export default {
     let res;
     if (p === '/api/data') res = await apiData(env, ctx);
     else if (p === '/api/match') res = await apiMatch(env, url);
+    else if (p === '/api/players') res = await apiRaw(env, ctx, 'players', '{"people":[],"apps":{}}');
+    else if (p === '/api/history') res = await apiRaw(env, ctx, 'history', '[]');
     else if (/^\/(ireland|munster|leinster|ulster|connacht)\/?$/.test(p)) {
       if (!p.endsWith('/')) return Response.redirect(url.origin + p + '/', 301);
       res = await env.ASSETS.fetch(new Request(new URL('/team/', url), request));

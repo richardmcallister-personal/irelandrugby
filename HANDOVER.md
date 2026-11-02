@@ -5,7 +5,7 @@ Live: home, five team pages, tables, match pages with scorers, players, player p
 Team sheets since 2020 are collecting newest first. Scorers: 521 of 625 matches add up (2 Nov 2026), and the file is a snapshot until `tools/build_scorers.py` is rerun on Richard's Mac. Shirts: 160 chosen from 259 photos.
 
 ## Next task
-None in progress. Richard to decide on rerunning scorers and fixtures on a weekly schedule, and on the shirt photo rights before launch.
+None in progress. A weekly scheduled task refreshes scorers and re-checks provincial fixtures (needs Richard's Mac on, with the desktop app open). Richard still to decide on the shirt photo rights before launch.
 
 ## Open items
 - Fixtures need re-checking against the teams' sites (`tools/fixtures_src.txt`), and Ireland's Six Nations 2027 games added if the feed lacks them.

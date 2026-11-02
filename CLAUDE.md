@@ -7,7 +7,7 @@ hand-built pages + one Cloudflare Worker, deployed on push to `main`. Live host:
 - Feed: Highlightly Rugby API (`https://rugby.highlightly.net`, header `x-rapidapi-key`). Test results are in HANDOVER.md.
 - Secret exists only on the Worker: `HIGHLIGHTLY_KEY`. Never in the repo or in chat.
 - The free plan is 100 calls a day. A cron every 6 h stores everything in KV (`CACHE`); pages read KV, never the feed. `worker.js` keeps its own daily ceiling (80). KV keys: `data` (recent matches, tables), `archive` and `history` (all matches since 2020), `m:<id>` (match detail), `players` (people and their selections; the browser does the adding up).
-- The feed lists no future URC or European fixtures. `tools/fixtures_src.txt` is hand-kept from the teams' sites and builds `fixtures.json`; feed rows replace them when the same date and teams appear.
+- The feed lists no future URC or European fixtures. `tools/fixtures_src.txt` is hand-kept from the teams' sites and `tools/build_fixtures.py` builds `fixtures.json` from it; feed rows replace them when the same date and teams appear.
 - `public/` is the site (no framework). `/munster/` etc. all serve `public/team/`. Images come from Richard's folder via `tools/build_images.py`.
 - Bench means named as a replacement: the feed doesn't say who came on. Never call these caps or appearances.
 - `public/data/scorers.json` and `public/data/museum.json` come from `tools/build_scorers.py` and `tools/build_museum.py`. These run on Richard's Mac, where Wikipedia and the photos are reachable with an honest user agent; the cloud shell gets refused, and never spoof a browser to get past that. Scorers count only where they add up to the final score.

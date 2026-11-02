@@ -2,7 +2,7 @@
 
 Richard's site for Ireland and the four provinces (Munster, Leinster, Ulster, Connacht).
 Separate repo and Worker from manutd.wiki (`richardmcallister-personal/SITE1`), same pattern:
-hand-built pages + one Cloudflare Worker, deployed on push to `main`.
+hand-built pages + one Cloudflare Worker, deployed on push to `main`. Live host: irelandrugby.wiki.
 
 - Feed: Highlightly Rugby API (`https://rugby.highlightly.net`, header `x-rapidapi-key`), on trial.
 - Secrets exist only on the Worker: `HIGHLIGHTLY_KEY`, `PROBE_TOKEN`. Never in the repo or in chat.

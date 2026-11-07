@@ -1,0 +1,33 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><script src="/comp.js"></script><title>World Cup final · Ireland Rugby</title></head><body>
+<script>IR.shell('world-cup')</script>
+<main id="main" class="wrap"><div id="p"><p class="empty">Loading…</p></div></main>
+<script>
+(async () => {
+  const el = document.getElementById('p'), esc = C.esc;
+  try {
+    const A = await C.index();
+    const W = A.filter((x) => x.kind === 'wc').sort((a, b) => a.y - b.y);
+    const y = Number(new URLSearchParams(location.search).get('y'));
+    const i = W.findIndex((x) => x.y === y);
+    if (i < 0) { el.innerHTML = '<section class="card"><p class="empty">No World Cup final that year. <a href="/world-cup/">All World Cups</a>.</p></section>'; IR.footer(null); return; }
+    const t = await C.one(W[i].id), f = t.final;
+    const AET = { 1995: 1, 2003: 1 };
+    const win = C.name(t.winner), run = C.name(t.runner);
+    document.title = `${y} Rugby World Cup final · Ireland Rugby`;
+    const prev = W[i - 1], next = W[i + 1];
+    const v = C.WCV[y];
+    const facts = [['Date', C.fd(f.date)], ['Venue', f.venue], ['Crowd', f.att], ['Referee', f.ref], ['Player of the match', f.motm], ['Weather', f.weather]].filter((x) => x[1]);
+    // Each finalist's way through the knockout rounds
+    const route = (c) => t.matches.filter((m) => m.stage !== 'Final' && /quarter|semi/i.test(m.stage) && (m.h === c || m.a === c));
+    const rrow = (c, m) => { const [x, z] = m.h === c ? m.s : [m.s[1], m.s[0]]; const o = m.h === c ? m.a : m.h; return `<tr><td>${esc(m.stage)}<small>${C.fd(m.date, false)}</small></td><td style="text-align:left">${IR.logo(C.team(o))} ${esc(C.name(o))}</td><td><b class="res-${x > z ? 'W' : x < z ? 'L' : 'D'}">${x}-${z}</b></td></tr>`; };
+    el.innerHTML = `<nav class="tnav" aria-label="Other finals">${prev ? `<a href="?y=${prev.y}">‹ ${prev.y}</a>` : '<span></span>'}<a href="/competition/?id=wc-${y}">The ${y} World Cup</a>${next ? `<a href="?y=${next.y}">${next.y} ›</a>` : '<span></span>'}</nav>
+      <section class="thero"><div class="tx"><span class="yr">${y}</span><h1>Rugby World Cup final</h1><div class="badges"><span class="badge gs">Winner: ${esc(win)}</span><span class="badge">Runner-up: ${esc(run)}</span>${AET[y] ? '<span class="badge">After extra time</span>' : ''}</div><p class="note" style="margin:0">${C.fd(f.date)}</p></div>${C.has(v) ? `<figure>${C.img(v, f.venue || 'Final venue', false)}<figcaption>${esc(f.venue || '')}. ${C.credit(v)}</figcaption></figure>` : ''}</section>
+      <section class="card">${C.card(f)}</section>
+      <div class="two"><section class="card"><h2>Match facts</h2><dl class="facts txt">${facts.map(([k, x]) => `<div><dt>${k}</dt><dd>${esc(x)}</dd></div>`).join('')}</dl></section>
+      <section class="card"><h2>Road to the final</h2>${[t.winner, t.runner].map((c) => `<h3 class="dec">${esc(C.name(c))}</h3><table class="pl"><tbody>${route(c).map((m) => rrow(c, m)).join('')}</tbody></table>`).join('')}<p class="note">Knockout rounds only. Pool results are on the <a href="/competition/?id=wc-${y}">${y} World Cup page</a> for Ireland's pool.</p></section></div>
+      ${C.has('webb-ellis-cup') ? `<section class="card"><h2>Pictures</h2><div class="gallery"><figure>${C.img('webb-ellis-cup', 'The Webb Ellis Cup')}<figcaption>The Webb Ellis Cup. ${C.credit('webb-ellis-cup')}</figcaption></figure></div></section>` : ''}
+      <p class="note">Source: ${C.wiki(f.page || t.page)}, Wikipedia (CC BY-SA).</p>`;
+  } catch (e) { console.error(e); IR.fail(el); }
+  IR.footer(null);
+})();
+</script></body></html>

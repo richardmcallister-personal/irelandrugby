@@ -67,7 +67,7 @@ const IR = (() => {
     return r.json();
   }
 
-  const SECTIONS = [['tables', 'Tables'], ['players', 'Players'], ['selection', 'Selection'], ['scorers', 'Scorers'], ['h2h', 'Head to head'], ['history', 'History'], ['titles', 'Titles'], ['world-cup', 'World Cup'], ['shirts', 'Shirts']];
+  const SECTIONS = [['tables', 'Tables'], ['players', 'Players'], ['selection', 'Selection'], ['scorers', 'Scorers'], ['h2h', 'Head to head'], ['history', 'History'], ['competitions', 'Competitions'], ['world-cup', 'World Cup'], ['shirts', 'Shirts']];
   function shell(active) {
     const on = (k) => (active === k ? ' aria-current="page"' : '');
     const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${on(s)}>${n}</a>`).join('');

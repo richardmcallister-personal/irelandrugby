@@ -1,0 +1,53 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><script src="/comp.js"></script><title>Competition · Ireland Rugby</title></head><body>
+<script>IR.shell('competitions')</script>
+<main id="main" class="wrap"><div id="p"><p class="empty">Loading…</p></div></main>
+<script>
+(async () => {
+  const el = document.getElementById('p'), esc = C.esc;
+  try {
+    const A = await C.index();
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const s = A.find((x) => x.id === id);
+    if (!s) { el.innerHTML = '<section class="card"><p class="empty">No such competition. <a href="/competitions/">All competitions</a>.</p></section>'; IR.footer(null); return; }
+    const t = await C.one(id);
+    document.title = `${C.title(t)} · Ireland Rugby`;
+    const same = A.filter((x) => x.kind === s.kind).sort((a, b) => a.y - b.y), i = same.indexOf(s), prev = same[i - 1], next = same[i + 1];
+    const ie = (m) => m.h === 'IRE' || m.a === 'IRE';
+    const im = t.matches.filter(ie);
+    let pf = 0, pa = 0; for (const m of im) { const [x, z] = m.h === 'IRE' ? m.s : [m.s[1], m.s[0]]; pf += x; pa += z; }
+    const wc = t.kind === 'wc', ko = t.kind !== 'ch';
+    const badges = [
+      t.won ? `<span class="badge gold">${t.shared ? 'Shared champions' : 'Champions'}</span>` : `<span class="badge">${esc(C.finish(t))}</span>`,
+      t.gs ? '<span class="badge gs">Grand Slam</span>' : '', t.tc ? '<span class="badge tc">Triple Crown</span>' : '',
+      t.won && t.shared ? `<span class="badge">With ${t.with.map(esc).join(', ')}</span>` : '',
+      t.spoon && !t.won ? '' : '', t.winner ? `<span class="badge">Won by ${esc(C.name(t.winner))}</span>` : '',
+    ].join('');
+    const hero = wc ? [C.WCV[t.y], `${t.final?.venue || 'Final venue'}, where the final was played`] : t.kind === 'anc' ? ['aviva', 'Aviva Stadium, Dublin, where Ireland played their home games'] : t.y >= 2010 ? ['aviva', 'Aviva Stadium, Dublin, Ireland\'s home since 2010'] : t.y >= 2007 ? ['croke-park', 'Croke Park, Dublin, Ireland\'s home from 2007 to 2010 (photo from 2004)'] : ['lansdowne-road', 'Lansdowne Road, Dublin, Ireland\'s main home until 2006 (photo from 2006)'];
+    // Ireland's scorers, counted by type: point values changed over the years.
+    const tally = {};
+    for (const m of im) { const sd = m.sc[m.h === 'IRE' ? 'h' : 'a'] || {}; for (const k of ['try', 'con', 'pen', 'drop']) for (const r of sd[k] || []) { if (/penalty try/i.test(r[0])) continue; const o = tally[r[0]] || (tally[r[0]] = { n: r[0], try: 0, con: 0, pen: 0, drop: 0 }); o[k] += r[2]; } }
+    const tl = Object.values(tally).sort((a, b) => b.try - a.try || (b.con + b.pen + b.drop) - (a.con + a.pen + a.drop));
+    const others = t.matches.filter((m) => !ie(m));
+    const fin = t.matches.find((m) => m.stage === 'Final');
+    const stages = [...new Set(others.filter((m) => m !== fin).map((m) => m.stage))];
+    const gal = [];
+    if (t.y === 1899) for (const k of ['1899-tug-of-war', '1899-warrior']) if (C.has(k)) gal.push([k, 'Newspaper cartoon by J. M. Staniforth, 1899']);
+    if (t.kind === 'ch' && t.y >= 2000 && t.won) gal.push(['six-nations-trophy', 'The Six Nations trophy']);
+    if (t.tc && t.y >= 2006) gal.push(['triple-crown', 'The Triple Crown trophy']);
+    if (wc) gal.push(['webb-ellis-cup', 'The Webb Ellis Cup, the World Cup trophy']);
+    if (im.some((m) => /ravenhill/i.test(m.venue || ''))) gal.push(['ravenhill', 'Ravenhill, Belfast, where Ireland played that season (modern photo)']);
+    const finCard = fin ? `<section class="card"><h2>The final</h2>${C.card(fin, { after: wc ? `<p style="text-align:center;margin:8px 0 0"><a class="more" href="/final/?y=${t.y}">Full page for the ${t.y} final ›</a></p>` : '' })}</section>` : '';
+    el.innerHTML = `<nav class="tnav" aria-label="Other years">${prev ? `<a href="${C.href(prev)}">‹ ${prev.y}</a>` : '<span></span>'}<a href="/competitions/${wc ? '?f=wc' : ''}">All competitions</a>${next ? `<a href="${C.href(next)}">${next.y} ›</a>` : '<span></span>'}</nav>
+      <section class="thero${t.won ? ' won' : ''}"><div class="tx"><span class="yr">${t.y}</span><h1>${esc(wc ? 'Rugby World Cup' : t.comp)}</h1><div class="badges">${badges}</div><p class="note" style="margin:0">${[t.dates, t.hosts ? 'Hosts: ' + t.hosts : ''].filter(Boolean).map(esc).join(' · ')}</p></div>${C.has(hero[0]) ? `<figure>${C.img(hero[0], hero[1], false)}<figcaption>${esc(hero[1])}. ${C.credit(hero[0])}</figcaption></figure>` : ''}</section>
+      <div class="stats"><div><b>${t.rec.join('-')}</b><span>Ireland won, drew, lost</span></div><div><b>${pf}-${pa}</b><span>Points for and against</span></div><div><b>${tl.reduce((a, b) => a + b.try, 0) || '–'}</b><span>Ireland tries recorded</span></div><div><b>${wc ? esc(t.finish.replace('Quarter-final play-off', 'QF play-off')) : t.matches.length}</b><span>${wc ? 'How far Ireland went' : 'Matches in the competition'}</span></div></div>
+      <div class="two">${t.tables.map((x) => `<section class="card"><h2>${esc(x.name === 'Table' ? 'Table' : x.name)}</h2>${C.table(x)}</section>`).join('')}<section class="card"><h2>Ireland's scorers</h2>${tl.length ? `<table class="pl"><thead><tr><th>Player</th><th>Tries</th><th>Con</th><th>Pen</th><th>Drop</th></tr></thead><tbody>${tl.map((o) => `<tr><td>${esc(o.n)}</td><td>${o.try || ''}</td><td>${o.con || ''}</td><td>${o.pen || ''}</td><td>${o.drop || ''}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">The source does not record Ireland\'s scorers for this competition.</p>'}${t.top_pts ? `<p class="note">Top points scorer: ${esc(t.top_pts)}${t.top_tries ? '. Top try scorer: ' + esc(t.top_tries) : ''}</p>` : ''}</section></div>
+      <section class="card"><h2>Ireland's matches</h2>${im.length ? im.map((m) => C.card(m, { stage: ko })).join('') : '<p class="empty">The source lists no match details for this season.</p>'}</section>
+      ${finCard}
+      ${ko && stages.length ? `<section class="card"><h2>${wc ? 'Knockout results' : 'Other finals'}</h2>${stages.map((g) => `<h3 class="dec">${esc(g)}</h3><table class="pl"><tbody>${others.filter((m) => m.stage === g).map((m) => `<tr><td>${esc(C.name(m.h))} <b>${m.s[0]}-${m.s[1]}</b> ${esc(C.name(m.a))}<small>${C.fd(m.date)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></td></tr>`).join('')}</tbody></table>`).join('')}</section>` : ''}
+      ${!ko && others.length ? `<section class="card"><h2>Other results</h2><table class="pl"><tbody>${others.map((m) => `<tr><td>${esc(C.name(m.h))} <b>${m.s[0]}-${m.s[1]}</b> ${esc(C.name(m.a))}<small>${C.fd(m.date)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></td></tr>`).join('')}</tbody></table></section>` : ''}
+      ${gal.filter(([k]) => C.has(k)).length ? `<section class="card"><h2>Pictures</h2><div class="gallery">${gal.filter(([k]) => C.has(k)).map(([k, c]) => `<figure>${C.img(k, c)}<figcaption>${esc(c)}. ${C.credit(k)}</figcaption></figure>`).join('')}</div></section>` : ''}
+      <p class="note">Source: ${C.wiki(t.page)}${wc ? ' and its pool and knockout articles' : ''}, Wikipedia (CC BY-SA). Older articles often leave out scorers, crowds and teams.</p>`;
+  } catch (e) { console.error(e); IR.fail(el); }
+  IR.footer(null);
+})();
+</script></body></html>

@@ -1,0 +1,34 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><script src="/comp.js"></script><title>Competitions · Ireland Rugby</title></head><body>
+<script>IR.shell('competitions')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Competitions</h1>
+<p class="note">Every Home Nations, Five Nations and Six Nations championship Ireland have played since 1883, every World Cup and the 2020 Autumn Nations Cup. Titles are highlighted. From Wikipedia, checked 7 November 2026.</p><div style="height:10px"></div>
+<div class="stats" id="st"></div>
+<section class="card"><div class="chips" id="chips" role="group" aria-label="Show"></div><div class="tlist" id="l"><p class="empty">Loading…</p></div></section></main>
+<script>
+(async () => {
+  const esc = C.esc;
+  try {
+    const A = await C.index();
+    const ch = A.filter((c) => c.kind === 'ch');
+    document.getElementById('st').innerHTML = `<div><b>${A.length}</b><span>Competitions</span></div><div><b>${A.filter((c) => c.won).length}</b><span>Titles, ${A.filter((c) => c.shared).length} of them shared</span></div><div><b>${A.filter((c) => c.gs).length}</b><span>Grand Slams</span></div><div><b>${A.filter((c) => c.tc).length}</b><span>Triple Crowns</span></div><div><b>${A.filter((c) => c.spoon).length}</b><span>Wooden spoons</span></div>`;
+    const F = [['all', 'All', () => true], ['won', 'Won', (c) => c.won], ['gs', 'Grand Slams', (c) => c.gs], ['tc', 'Triple Crowns', (c) => c.tc], ['wc', 'World Cups', (c) => c.kind === 'wc'], ['six', 'Six Nations', (c) => c.kind === 'ch' && c.y >= 2000], ['five', 'Five Nations', (c) => c.kind === 'ch' && c.y >= 1910 && c.y < 2000], ['home', 'Home Nations', (c) => c.kind === 'ch' && c.y < 1910], ['spoon', 'Wooden spoons', (c) => c.spoon]];
+    let f = new URLSearchParams(location.search).get('f'); if (!F.some((x) => x[0] === f)) f = 'all';
+    const chips = document.getElementById('chips');
+    const draw = () => {
+      chips.innerHTML = F.map(([k, n, t]) => `<button type="button" class="chip${k === f ? ' on' : ''}" data-k="${k}" aria-pressed="${k === f}">${n} <small>${A.filter(t).length}</small></button>`).join('');
+      const L = A.filter(F.find((x) => x[0] === f)[2]).slice().sort((a, b) => b.y - a.y || (a.kind < b.kind ? 1 : -1));
+      let out = '', dec = '';
+      for (const c of L) {
+        const d = Math.floor(c.y / 10) * 10 + 's';
+        if (d !== dec) { out += `<h3 class="dec">${d}</h3>`; dec = d; }
+        const extra = [c.won && c.shared ? 'with ' + c.with.join(', ') : '', c.gs ? 'Grand Slam' : '', c.tc ? 'Triple Crown' : '', c.kind === 'wc' && c.winner ? 'Won by ' + C.name(c.winner) : ''].filter(Boolean).join(' · ');
+        out += `<a class="trow${c.won ? ' won' : ''}" href="${C.href(c)}"><span class="y">${c.y}</span><span class="n">${esc(c.kind === 'wc' ? 'Rugby World Cup' : c.comp)}<small>${c.won ? '<span class="cup" aria-hidden="true">🏆</span> ' : ''}${esc(C.finish(c))}${extra ? ' · ' + esc(extra) : ''}</small></span><span class="r">W-D-L<br>${c.rec.join('-')}</span></a>`;
+      }
+      document.getElementById('l').innerHTML = out || '<p class="empty">Nothing here.</p>';
+    };
+    chips.onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; f = b.dataset.k; history.replaceState(null, '', f === 'all' ? location.pathname : '?f=' + f); draw(); };
+    draw();
+  } catch (e) { IR.fail(document.getElementById('l')); }
+  IR.footer(null);
+})();
+</script></body></html>

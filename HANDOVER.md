@@ -29,8 +29,10 @@ Sample: 12 finished matches opened (11 provincial, 1 Ireland), plus match lists,
 - Highlights: official YouTube embeds seen (IrishRugby TV), with match links.
 - Team logos: null for all four provinces and some others (e.g. Glasgow), present for Ireland. Team crests must come from our own files.
 
-## Championship pages (7 Nov 2026)
-- `/titles/` lists Ireland's 24 championships; `/title/?y=YYYY` is one page per title: table, Ireland's matches with scorers and teams, other results, pictures.
-- Data: `tools/build_titles.py` on Richard's Mac against Wikipedia, then rebuild `public/data/titles.json` (keep its `images` part).
-- Wikipedia has no team lists or scorers for many seasons from 1912 to 1985; the pages say so.
-- Open: World Cup pictures and a page per World Cup.
+## Competitions (7 Nov 2026)
+- Titles section renamed Competitions. 143 entries: 132 championship seasons (1883-2026), 10 World Cups, the 2020 Autumn Nations Cup. Won ones highlighted in gold, with filters (Won, Grand Slams, Triple Crowns, World Cups, each championship era, wooden spoons).
+- Each competition page: table, Ireland's record and scorers, a card per Ireland match (scorers, Ireland team, line-up diagram when Commons has one), other results; World Cups add the final and knockout results.
+- Each World Cup final has its own page (`/final/?y=`): both teams, scorers, both line-ups, facts, road to the final.
+- The World Cup page links every year and every final.
+- Gaps: Wikipedia has no team lists or scorers for many seasons before about 1990; 1885 has no match details.
+- Open: shirt photo rights before launch; delete `_site-export.tgz`, `_titles-export.tgz`, `_comps-export.tgz` from the assets folder.

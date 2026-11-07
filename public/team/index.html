@@ -41,15 +41,17 @@
   const KEY = 'acc-' + SLUG; let open = []; try { open = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
   document.querySelectorAll('details.acc').forEach((d, i) => { if (open.includes(i)) d.open = true; d.addEventListener('toggle', () => { const o = [...document.querySelectorAll('details.acc')].map((x, j) => (x.open ? j : -1)).filter((j) => j >= 0); try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }); });
   try {
-    const d = await IR.data();
-    const ms = d.matches.filter((m) => IR.has(m, SLUG));
+    const [d, hist] = await Promise.all([IR.data(), fetch('/api/history').then((r) => (r.ok ? r.json() : [])).catch(() => [])]);
+    // The recent store can miss results; the full history has every finished match since 2020.
+    const seen = new Set(), ms = [];
+    for (const m of [...d.matches, ...hist]) { if (!IR.has(m, SLUG)) continue; const k = m.id || m.date.slice(0, 10) + m.h.s + m.a.s; if (seen.has(k)) continue; seen.add(k); ms.push(m); }
     const past = IR.results(ms), fut = IR.upcoming(ms);
     const last5 = past.slice(0, 5).reverse().map((m) => IR.result(m, SLUG));
     h.innerHTML = hero(last5.length ? '<div class="form" aria-label="Form, oldest first">' + last5.map((r) => `<i class="${r}">${r}</i>`).join('') + '</div>' : '');
     const nx = fut[0];
     document.getElementById('next').innerHTML = nx ? `<div class="next"><div class="t">${IR.logo(nx.h, 'big')}${IR.esc(nx.h.n)}</div><div class="mid">${IR.fmtDay(nx.date)}<br>${IR.fmtTime(nx.date)}<small>${IR.irishTime(nx.date)}</small><small>${IR.esc(IR.compName(nx))}${nx.venue ? ' · ' + IR.esc(nx.venue) : ''}</small></div><div class="t">${IR.logo(nx.a, 'big')}${IR.esc(nx.a.n)}</div></div>` : '<p class="empty">No fixture listed.</p>';
     document.getElementById('fix').innerHTML = IR.byDay(fut) || '<p class="empty">No fixtures listed.</p>';
-    $('fixn').textContent = fut.length ? fut.length + ' listed' : ''; $('resn').textContent = past.length ? past.length + ' shown' : '';
+    $('fixn').textContent = fut.length ? fut.length + ' listed' : ''; $('resn').textContent = past.length ? past.length + ' since 2020' : '';
     $('soon').innerHTML = IR.byDay(fut.slice(1, 4)) || '<p class="empty">Nothing further listed yet.</p>';
     $('last').innerHTML = IR.byDay(past.slice(0, 3)) || '<p class="empty">No results yet.</p>';
     let shown = 10; const more = document.getElementById('more');

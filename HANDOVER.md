@@ -37,4 +37,5 @@ Sample: 12 finished matches opened (11 provincial, 1 Ireland), plus match lists,
 - Gaps: Wikipedia has no team lists or scorers for many seasons before about 1990; 1885 has no match details.
 - Team pages (7 Nov 2026): 57 teams from the tables and old championships and World Cups. Squads, grounds and links come from Wikipedia and Wikidata, so they can lag behind; rebuild after transfer windows. Coach left blank where the infobox was unclear (Bristol, Exeter).
 - The five Irish team sections now carry the same details: official links (taken from each team's own website), grounds, coach, captain, squad.
+- Province pages (7 Nov 2026): next match, latest 3 results and next 3 fixtures up top; tables, all results, all fixtures, squad, ground details and kits in collapsible sections (open ones remembered per browser). Results merge `/api/history`, because the `data` store was missing some of this season's results (all of Leinster's on 7 Nov). Worth finding why the cron's recent window drops them; the home page still reads `data` only.
 - Open: shirt photo rights before launch; delete `_site-export.tgz`, `_titles-export.tgz`, `_comps-export.tgz` from the assets folder.

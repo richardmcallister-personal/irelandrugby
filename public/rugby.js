@@ -67,11 +67,15 @@ const IR = (() => {
     return r.json();
   }
 
+  const SECTIONS = [['tables', 'Tables'], ['players', 'Players'], ['selection', 'Selection'], ['scorers', 'Scorers'], ['h2h', 'Head to head'], ['history', 'History'], ['world-cup', 'World Cup'], ['shirts', 'Shirts']];
   function shell(active) {
     const on = (k) => (active === k ? ' aria-current="page"' : '');
     const nav = Object.entries(TEAMS).map(([s, n]) => `<a href="/${s}/"${on(s)}>${n}</a>`).join('');
-    const sub = [['tables', 'Tables'], ['players', 'Players'], ['selection', 'Selection'], ['scorers', 'Scorers'], ['h2h', 'Head to head'], ['history', 'History'], ['shirts', 'Shirts']].map(([k, n]) => `<a href="/${k}/"${on(k)}>${n}</a>`).join('');
-    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/">Ireland Rugby</a><nav class="nav" aria-label="Teams">${nav}</nav></div><nav class="sub" aria-label="Sections"><div>${sub}</div></nav><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
+    const sub = SECTIONS.map(([k, n]) => `<a href="/${k}/"${on(k)}>${n}</a>`).join('');
+    document.body.insertAdjacentHTML('afterbegin', `<a class="skip" href="#main">Skip to content</a><header class="top"><div class="in"><a class="brand" href="/"><img src="/img/crest/ireland-white.webp" alt="" width="34" height="36">Ireland Rugby</a><nav class="nav" aria-label="Teams">${nav}</nav></div><nav class="sub" aria-label="Sections"><div>${sub}</div></nav><div class="stripe" aria-hidden="true">${Object.keys(TEAMS).map((s) => `<i style="background:var(--${s})"></i>`).join('')}</div></header>`);
+    const TABS = [['/', 'Home', 'home', '<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/>'], ['/tables/', 'Tables', 'tables', '<path d="M4 6h16M4 12h16M4 18h10"/>'], ['/players/', 'Players', 'players', '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>'], ['/world-cup/', 'World Cup', 'world-cup', '<path d="M7 4h10v4a5 5 0 0 1-10 0zM5 5H3v2a3 3 0 0 0 4 3M19 5h2v2a3 3 0 0 1-4 3M12 13v4M8 21h8M9 17h6v4H9z"/>'], ['/more/', 'More', 'more', '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>']];
+    const more = !TABS.some((t) => t[2] === active) && !TEAMS[active] ? 'more' : active;
+    document.body.insertAdjacentHTML('beforeend', `<nav class="tabs" aria-label="Sections">${TABS.map(([h, n, k, p]) => `<a href="${h}"${more === k ? ' aria-current="page"' : ''}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${p}</svg>${n}</a>`).join('')}</nav>`);
   }
 
   function footer(updated) {
@@ -113,5 +117,5 @@ const IR = (() => {
   const sideScorers = (s) => scoreLine(s.try, 'Tries') + scoreLine(s.con, 'Conversions') + scoreLine(s.pen, 'Penalties') + scoreLine(s.drop, 'Drop goals');
 
   const fail = (el) => { el.innerHTML = '<p class="empty">Could not load the data. Please try again shortly.</p>'; };
-  return { sideScorers, POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
+  return { SECTIONS, sideScorers, POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
 })();

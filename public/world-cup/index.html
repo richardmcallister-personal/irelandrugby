@@ -1,0 +1,57 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Rugby World Cup · Ireland Rugby</title></head><body>
+<script>IR.shell('world-cup')</script>
+<main id="main" class="wrap"><h1 class="pagehd">Rugby World Cup</h1>
+<p class="note">Every men's tournament since 1987. Results and records from Wikipedia, checked 7 November 2026. Next: Australia 2027, the first with 24 teams, then the United States in 2031.</p>
+<div style="height:10px"></div>
+<div class="stats"><div><b>10</b><span>Tournaments</span></div><div><b>4</b><span>Winners: South Africa, New Zealand, Australia, England</span></div><div><b>4</b><span>Titles for South Africa, the most</span></div><div><b>0</b><span>Semi-finals for Ireland, in 10 tries</span></div></div>
+<section class="card"><h2>How each nation finished</h2><p class="note" style="margin:0 0 10px">The top eight of every tournament. 1999 had a quarter-final play-off round: teams beaten there, Ireland among them, count as not reaching the last eight.</p><div style="overflow-x:auto"><table class="wcgrid" id="grid"></table></div>
+<div class="legend2"><span><i style="background:#0a5a35"></i>Winner</span><span><i style="background:#2f8a5a"></i>Runner-up</span><span><i style="background:#7dbd96"></i>Third</span><span><i style="background:#bcdcc8"></i>Fourth</span><span><i style="background:#e6f0e9;box-shadow:inset 0 0 0 1px var(--rule)"></i>Quarter-final</span></div></section>
+<div class="two"><section class="card"><h2>Titles</h2><div id="titles"></div></section><section class="card"><h2>Crowds at the final</h2><div id="crowd"></div><p class="note">Attendance at each final.</p></section></div>
+<section class="card"><h2>Every final</h2><div style="overflow-x:auto"><table class="pl finals" id="finals"></table></div></section>
+<section class="card"><h2>Records</h2><ul class="hon" id="rec"></ul></section>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script>
+(() => {
+  // [year, hosts, winner, score, runner-up, third, 3rd-place score, fourth, teams, final venue, attendance, aet, Ireland's finish]
+  const T = [
+    [1987, 'New Zealand, Australia', 'New Zealand', '29-9', 'France', 'Wales', '22-21', 'Australia', 16, 'Eden Park, Auckland', 48035, 0, 'Quarter-finals'],
+    [1991, 'England, France, Ireland, Scotland, Wales', 'Australia', '12-6', 'England', 'New Zealand', '13-6', 'Scotland', 16, 'Twickenham, London', 56208, 0, 'Quarter-finals'],
+    [1995, 'South Africa', 'South Africa', '15-12', 'New Zealand', 'France', '19-9', 'England', 16, 'Ellis Park, Johannesburg', 59870, 1, 'Quarter-finals'],
+    [1999, 'Wales', 'Australia', '35-12', 'France', 'South Africa', '22-18', 'New Zealand', 20, 'Millennium Stadium, Cardiff', 72500, 0, 'Quarter-final play-off'],
+    [2003, 'Australia', 'England', '20-17', 'Australia', 'New Zealand', '40-13', 'France', 20, 'Stadium Australia, Sydney', 82957, 1, 'Quarter-finals'],
+    [2007, 'France', 'South Africa', '15-6', 'England', 'Argentina', '34-10', 'France', 20, 'Stade de France, Saint-Denis', 80430, 0, 'Pool stage'],
+    [2011, 'New Zealand', 'New Zealand', '8-7', 'France', 'Australia', '21-18', 'Wales', 20, 'Eden Park, Auckland', 61079, 0, 'Quarter-finals'],
+    [2015, 'England', 'New Zealand', '34-17', 'Australia', 'South Africa', '24-13', 'Argentina', 20, 'Twickenham, London', 80125, 0, 'Quarter-finals'],
+    [2019, 'Japan', 'South Africa', '32-12', 'England', 'New Zealand', '40-17', 'Wales', 20, 'International Stadium Yokohama', 70103, 0, 'Quarter-finals'],
+    [2023, 'France', 'South Africa', '12-11', 'New Zealand', 'England', '26-23', 'Argentina', 20, 'Stade de France, Saint-Denis', 80065, 0, 'Quarter-finals'],
+  ];
+  // Quarter-final losers (Wikipedia, Team records)
+  const QF = {
+    'South Africa': [2003, 2011], 'New Zealand': [2007], Australia: [1995, 2007, 2019], England: [1987, 1999, 2011], France: [1991, 2015, 2019, 2023],
+    Wales: [1999, 2003, 2015, 2023], Argentina: [1999, 2011], Scotland: [1987, 1995, 1999, 2003, 2007, 2015], Ireland: [1987, 1991, 1995, 2003, 2011, 2015, 2019, 2023],
+    Fiji: [1987, 2007, 2023], Samoa: [1991, 1995], Canada: [1991], Japan: [2019],
+  };
+  const FLAG = { 'New Zealand': 'new-zealand', 'South Africa': 'south-africa', Australia: 'australia', England: 'england', France: 'france', Wales: 'wales-official', Argentina: 'argentina', Scotland: 'scotland-official', Ireland: 'ireland', Fiji: 'fiji', Samoa: 'samoa', Canada: 'canada', Japan: 'japan' };
+  const years = T.map((t) => t[0]);
+  const fin = (n, y) => { const t = T.find((x) => x[0] === y); return n === t[2] ? 1 : n === t[4] ? 2 : n === t[5] ? 3 : n === t[7] ? 4 : (QF[n] || []).includes(y) ? 5 : 0; };
+  const LAB = ['', 'Winner', 'Runner-up', 'Third', 'Fourth', 'Quarter-final'], CLS = ['no', 'f1', 'f2', 'f3', 'f4', 'qf'], TXT = ['', '1', '2', '3', '4', 'QF'];
+  const nations = Object.keys(FLAG).map((n) => ({ n, f: years.map((y) => fin(n, y)) }))
+    .sort((a, b) => { for (let k = 1; k <= 5; k++) { const d = b.f.filter((x) => x === k).length - a.f.filter((x) => x === k).length; if (d) return d; } return 0; });
+  document.getElementById('grid').innerHTML = '<thead><tr><th></th>' + years.map((y) => `<th>${y}</th>`).join('') + '</tr></thead><tbody>' + nations.map((r) => `<tr class="${r.n === 'Ireland' ? 'ie' : ''}"><th class="t" scope="row">${r.n}</th>` + r.f.map((f, i) => `<td class="${CLS[f]}" data-tip="${r.n}, ${years[i]}: ${f ? LAB[f] : 'did not reach the last eight'}">${f ? TXT[f] : '·'}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  const wins = {}; for (const t of T) wins[t[2]] = (wins[t[2]] || 0) + 1;
+  const W = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+  document.getElementById('titles').innerHTML = W.map(([n, c]) => `<div class="hb" data-tip="${n}: ${T.filter((t) => t[2] === n).map((t) => t[0]).join(', ')}"><span>${n}</span><span class="tr"><i style="width:${(100 * c) / 4}%"></i></span><b>${c}</b></div>`).join('') + '<p class="note">France, Wales, Argentina and Scotland have reached the semi-finals without winning.</p>';
+  const max = Math.max(...T.map((t) => t[10]));
+  document.getElementById('crowd').innerHTML = T.map((t) => `<div class="hb" data-tip="${t[0]} final, ${t[9]}: ${t[10]}"><span>${t[0]}</span><span class="tr"><i style="width:${(100 * t[10]) / max}%"></i></span><b style="font-size:15px;font-family:var(--body);font-weight:600">${Math.round(t[10] / 1000)}k</b></div>`).join('');
+  document.getElementById('finals').innerHTML = '<thead><tr><th>Year</th><th>Final</th><th class="wide">Third place</th><th>Ireland</th></tr></thead><tbody>' + T.slice().reverse().map((t) => `<tr><td><span style="display:inline-flex;align-items:center;gap:8px"><img src="/img/wc/men-${t[0]}.webp" alt="" height="34" width="34" style="height:34px;width:auto;max-width:60px;background:#fff;border-radius:4px;padding:1px">${t[0]}</span><small>${t[1]} · ${t[8]} teams</small></td><td style="text-align:left"><b>${t[2]}</b> <span class="sc">${t[3]}</span> ${t[4]}${t[11] ? ' <small style="display:inline">after extra time</small>' : ''}<small>${t[9]}</small></td><td class="wide" style="text-align:left">${t[5]} ${t[6]} ${t[7]}</td><td style="text-align:left">${t[12]}</td></tr>`).join('') + '</tbody>';
+  const R = [['277', 'Most points in all tournaments', 'Jonny Wilkinson, England'], ['126', 'Most points in one tournament', 'Grant Fox, New Zealand, 1987'], ['15', 'Most tries in all tournaments', 'Jonah Lomu, New Zealand, and Bryan Habana, South Africa'], ['8', 'Most tries in one tournament', 'Lomu 1999, Habana 2007, Julian Savea 2015, Will Jordan 2023'], ['26', 'Most World Cup matches', 'Sam Whitelock, New Zealand, 2011-2023'], ['45', 'Most points in a match', 'Simon Culhane, New Zealand v Japan, 1995'], ['145', 'Most points by a team in a match', 'New Zealand 145-17 Japan, 1995'], ['142', 'Widest winning margin', 'Australia 142-0 Namibia, 2003']];
+  document.getElementById('rec').innerHTML = R.map(([n, a, b]) => `<li><b class="n">${n}</b><div>${a}<span class="y">${b}</span></div></li>`).join('');
+  document.querySelector('.hon').style.cssText = 'list-style:none;padding:0;margin:0';
+  document.querySelectorAll('.hon li').forEach((l) => (l.style.gridTemplateColumns = '64px 1fr'));
+  const tip = document.getElementById('tip');
+  const show = (e) => { const t = e.target.closest('[data-tip]'); if (!t) { tip.style.opacity = 0; return; } tip.textContent = t.dataset.tip; const r = t.getBoundingClientRect(); tip.style.opacity = 1; tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - tip.offsetWidth / 2)) + 'px'; tip.style.top = (r.top - tip.offsetHeight - 6) + 'px'; };
+  document.addEventListener('pointerover', show); document.addEventListener('pointerout', (e) => { if (!e.relatedTarget || !e.relatedTarget.closest('[data-tip]')) tip.style.opacity = 0; });
+  IR.footer(null);
+})();
+</script></body></html>

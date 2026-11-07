@@ -185,3 +185,92 @@ img{display:block}
 .shirts figure{margin:0}.shirts img{width:100%;aspect-ratio:8/9;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--rule)}
 .shirts figcaption{font-size:14px;font-weight:600;margin-top:4px;line-height:1.25}.shirts figcaption a{display:block;font-weight:400;font-size:12px;color:var(--muted)}
 .wc th:nth-child(2){text-align:left}
+
+/* ===== manutd.wiki design language (7 Nov 2026): quiet Apple-style UI, Ireland green as the one accent,
+   green masthead with the name in Anton, system text, Anton only for scores and kick-off times,
+   white cards radius 18 on #f5f5f7, sentence case everywhere, 44px tap areas, phone tab bar. ===== */
+:root{--bg:#f5f5f7;--paper:#fff;--ink:#1d1d1f;--muted:#6e6e73;--rule:#e0e0e0;--tint:#f5f5f7;--band:#0a6b3d;--accent:#0a6b3d;--accent-ink:#08703f;--win:#0a7a2f;--loss:#c4122f;--draw:#8e8e93;--radius:18px;
+ --display:"SF Pro Display",system-ui,-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--body:"SF Pro Text",system-ui,-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --score:Anton,"Arial Narrow","Helvetica Neue Condensed",Impact,sans-serif;--brand:Anton,"Arial Narrow","Helvetica Neue Condensed",Impact,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--paper:#1c1c1e;--ink:#f5f5f7;--muted:#a1a1a6;--rule:#38383a;--tint:#2c2c2e;--band:#0a5a34;--accent-ink:#4cd38a;--win:#30d158;--loss:#ff6b7a;--draw:#8e8e93}}
+body{font-family:var(--body);font-size:16px;line-height:1.5;letter-spacing:-.011em}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.015em;text-transform:none!important}
+*{text-transform:none}
+.tile small,.day,.tag,.tbl th,.board .st,.facts dt,.rec span,.benchhd td{text-transform:none!important;letter-spacing:0!important}
+/* masthead: one green band, sticky */
+.top{position:sticky;top:0;z-index:30;background:var(--band)}
+.top .in{max-width:1080px;min-height:64px;padding:10px 16px 6px}
+.brand{font:400 28px/1 var(--brand);text-transform:uppercase!important;letter-spacing:.01em;display:flex;align-items:center;gap:10px;color:#fff}
+.brand img{width:34px;height:auto}
+.nav a{font-size:15px;font-weight:600;padding:10px 10px;min-height:44px;display:inline-flex;align-items:center;border-radius:0;background:none!important}
+.nav a:hover{text-decoration:underline;text-underline-offset:5px}
+.nav a[aria-current=page]{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.sub{background:var(--band);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.sub div{max-width:1080px;padding:4px 10px 8px}
+.sub a{font-size:14px;font-weight:600;padding:10px 10px;min-height:44px;display:inline-flex;align-items:center;background:none!important;border-radius:0}
+.sub a:hover{text-decoration:underline;text-underline-offset:5px}
+.sub a[aria-current=page]{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.stripe{height:3px}
+.wrap,.foot{max-width:1080px}
+.hero .in{max-width:1080px}
+@media (min-width:1440px){.wrap,.foot,.top .in,.sub div,.hero .in{max-width:1320px}}
+/* cards */
+.card{border:0;border-radius:var(--radius);padding:18px 20px;box-shadow:0 1px 0 rgba(0,0,0,.05);margin-bottom:12px}
+.two{gap:12px}
+.card>h2,.comphd h2{font-size:19px;font-weight:600;line-height:1.25;margin-bottom:10px}
+.pagehd{font:600 34px/1.1 var(--display)!important;letter-spacing:-.02em;margin:6px 0 6px}
+.hero h1{font:600 40px/1.05 var(--display)}
+.tile{border-radius:var(--radius);padding:16px}
+.tile h2{font:600 22px/1.1 var(--display)}
+.tile small{font-size:12px;opacity:.85}
+.day{font:600 13px var(--body);color:var(--muted)}
+.teamhd{border-radius:12px}.teamhd h2{font:600 20px/1.1 var(--display)}
+/* tables in the manutd style */
+.tbl th,.pl th{font:600 11px var(--body);color:var(--muted);border-bottom:2px solid var(--ink);padding:6px 8px}
+.tbl td,.pl td{padding:7px 8px;font-variant-numeric:tabular-nums}
+.tbl tr.irish td{background:#e8f3ec}
+@media (prefers-color-scheme:dark){.tbl tr.irish td{background:#12301f}}
+/* condensed figures: scores and kick-off times only */
+.side .sc,.board .s,.next .mid,.rec b,.stats b,.facts dd,.hon b.n{font-family:var(--score)!important;font-weight:400!important;letter-spacing:.01em}
+.board .s{font-size:52px}
+.facts dd{font-family:var(--display)!important;font-weight:600!important;font-size:20px}
+.stats div,.rec div,.facts div{border-radius:10px}
+/* actions and controls */
+.more{border-radius:999px;min-height:44px;padding:10px 20px;font:600 15px var(--body);box-shadow:inset 0 0 0 1.5px var(--rule);border:0}
+.more:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.filters input,.filters select{border-radius:10px;min-height:44px;border:0;box-shadow:inset 0 0 0 1px var(--rule)}
+.jump a{min-height:36px;display:inline-flex;align-items:center}
+.note a,.tlink,.linkbtn{color:var(--accent-ink);font-weight:600;text-decoration:none}.note a:hover{text-decoration:underline}
+.foot{border-top:0;font-size:12px}
+/* phone: tab bar, section bar off (it lives under More) */
+nav.tabs{display:none}
+@media (max-width:640px){
+  .sub{display:none}
+  .top .in{min-height:auto;padding:10px 12px 2px;gap:4px}
+  .brand{font-size:24px}
+  .nav{margin-left:0;width:100%;justify-content:space-between}
+  .nav a{padding:8px 4px;font-size:14px}
+  nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--paper);border-top:1px solid var(--rule);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px;font:600 10px var(--body);color:var(--muted);text-decoration:none}
+  nav.tabs a[aria-current=page]{color:var(--accent-ink)} nav.tabs svg{width:22px;height:22px}
+  body{padding-bottom:84px}
+  .card{padding:16px}
+  .pagehd{font-size:28px!important}
+}
+@media (display-mode:standalone){.top .in{padding-top:calc(env(safe-area-inset-top,0px) + 10px)}}
+/* World Cup page */
+.wcgrid{width:100%;border-collapse:separate;border-spacing:3px;font-size:13px;font-variant-numeric:tabular-nums}
+.wcgrid th{font:600 11px var(--body);color:var(--muted);padding:2px;text-align:center;white-space:nowrap}
+.wcgrid th.t{text-align:left;padding-right:8px;font-size:13px;color:var(--ink)}
+.wcgrid td{height:30px;min-width:34px;border-radius:5px;text-align:center;font-weight:600;cursor:default}
+.wcgrid td.f1{background:#0a5a35;color:#fff}.wcgrid td.f2{background:#2f8a5a;color:#fff}.wcgrid td.f3{background:#7dbd96;color:#0b2a19}.wcgrid td.f4{background:#bcdcc8;color:#0b2a19}.wcgrid td.qf{background:#e6f0e9;color:#3a4a40}.wcgrid td.no{background:transparent;color:var(--muted);font-weight:400}
+@media (prefers-color-scheme:dark){.wcgrid td.f1{background:#6fd69b;color:#06200f}.wcgrid td.f2{background:#3fae6e;color:#06200f}.wcgrid td.f3{background:#23794a;color:#fff}.wcgrid td.f4{background:#17503189;color:#fff}.wcgrid td.qf{background:#1d3327;color:#cfe3d6}}
+.wcgrid tr.ie th.t{color:var(--accent-ink)}
+.legend2{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:8px 0 0}
+.legend2 i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.hb{display:grid;grid-template-columns:110px 1fr 40px;gap:8px;align-items:center;padding:4px 0;font-size:14px}
+.hb .tr{height:18px;background:var(--tint);border-radius:4px;overflow:hidden}.hb .tr i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.hb b{font-family:var(--score);font-weight:400;font-size:18px;text-align:right}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;line-height:1.35;padding:6px 9px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .1s}
+.finals td small{display:block;color:var(--muted);font-size:12px}
+.finals .sc{font-family:var(--score);font-size:20px;white-space:nowrap}

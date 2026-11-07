@@ -28,3 +28,9 @@ Sample: 12 finished matches opened (11 provincial, 1 Ireland), plus match lists,
 - Tables: wins, draws, losses, points, points for and against. No bonus-point or try columns.
 - Highlights: official YouTube embeds seen (IrishRugby TV), with match links.
 - Team logos: null for all four provinces and some others (e.g. Glasgow), present for Ireland. Team crests must come from our own files.
+
+## Championship pages (7 Nov 2026)
+- `/titles/` lists Ireland's 24 championships; `/title/?y=YYYY` is one page per title: table, Ireland's matches with scorers and teams, other results, pictures.
+- Data: `tools/build_titles.py` on Richard's Mac against Wikipedia, then rebuild `public/data/titles.json` (keep its `images` part).
+- Wikipedia has no team lists or scorers for many seasons from 1912 to 1985; the pages say so.
+- Open: World Cup pictures and a page per World Cup.

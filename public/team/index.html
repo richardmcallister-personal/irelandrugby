@@ -3,14 +3,18 @@
 <div class="hero" id="hero"></div>
 <main id="main" class="wrap">
 <section class="card" id="nextc"><h2>Next match</h2><div id="next"><p class="empty">Loading…</p></div></section>
-<div class="two"><div>
-<section class="card"><h2>Results</h2><div id="res"></div><button class="more" id="more" hidden>Show more</button></section>
-</div><div>
-<section class="card"><h2>Fixtures</h2><div id="fix"></div></section>
-<div id="tabs"></div>
-<section class="card"><h2>Current kits</h2><div class="kits" id="kits"></div><p class="note"><a id="shirtl" href="/shirts/">Older shirts</a> · <a id="h2hl" href="/h2h/">Head to head</a> · <a id="pll" href="/players/">Players</a></p></section>
-</div></div>
-<div id="side"></div>
+<div class="two">
+<section class="card"><h2>Latest results</h2><div id="last"></div></section>
+<section class="card"><h2>Next fixtures</h2><div id="soon"></div></section>
+</div>
+<div class="accs">
+<details class="acc"><summary>Tables <small id="tabsn"></small></summary><div class="accb" id="tabs"></div></details>
+<details class="acc"><summary>All results <small id="resn"></small></summary><div class="accb"><div id="res"></div><button class="more" id="more" hidden>Show more</button></div></details>
+<details class="acc"><summary>All fixtures <small id="fixn"></small></summary><div class="accb" id="fix"></div></details>
+<details class="acc"><summary>Squad <small id="sqn"></small></summary><div class="accb" id="sq"></div></details>
+<details class="acc"><summary>Ground and team details</summary><div class="accb" id="side"></div></details>
+<details class="acc"><summary>Kits and links</summary><div class="accb"><div class="kits" id="kits"></div><p class="note"><a id="shirtl" href="/shirts/">Older shirts</a> · <a id="h2hl" href="/h2h/">Head to head</a> · <a id="pll" href="/players/">Players</a></p><div id="sidel"></div></div></details>
+</div>
 </main>
 <script>
 (async () => {
@@ -28,7 +32,14 @@
   document.getElementById('kits').innerHTML = KITS[SLUG].map(([f, c]) => `<figure><img src="/img/kit/${SLUG}-${f}.webp" alt="${name} ${c} shirt" loading="lazy" width="240" height="270"><figcaption>${c}</figcaption></figure>`).join('');
   const hero = (form) => `<div class="in" style="--tc:var(--${SLUG})"><img src="/img/crest/${SLUG}-white.webp" alt="" width="92" height="92"><div><h1>${name}</h1>${form}</div></div>`;
   const h = document.getElementById('hero'); h.style.setProperty('--tc', 'var(--' + SLUG + ')'); h.innerHTML = hero('');
-  SIDE.load().then((S) => { const t = S[SLUG]; if (t) document.getElementById('side').innerHTML = SIDE.links(t) + `<div class="two">${SIDE.ground(t)}${SIDE.about(t)}</div>` + SIDE.squad(t) + SIDE.source(t); }).catch(() => {});
+  const $ = (id) => document.getElementById(id);
+  SIDE.load().then((S) => { const t = S[SLUG]; if (!t) return;
+    $('side').innerHTML = `<div class="two">${SIDE.ground(t)}${SIDE.about(t)}</div>` + SIDE.source(t);
+    $('sq').innerHTML = SIDE.squad(t); $('sqn').textContent = (t.squad || []).length ? t.squad.length + ' players' : '';
+    $('sidel').innerHTML = SIDE.links(t); }).catch(() => {});
+  // Remember which sections were open
+  const KEY = 'acc-' + SLUG; let open = []; try { open = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+  document.querySelectorAll('details.acc').forEach((d, i) => { if (open.includes(i)) d.open = true; d.addEventListener('toggle', () => { const o = [...document.querySelectorAll('details.acc')].map((x, j) => (x.open ? j : -1)).filter((j) => j >= 0); try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }); });
   try {
     const d = await IR.data();
     const ms = d.matches.filter((m) => IR.has(m, SLUG));
@@ -38,6 +49,9 @@
     const nx = fut[0];
     document.getElementById('next').innerHTML = nx ? `<div class="next"><div class="t">${IR.logo(nx.h, 'big')}${IR.esc(nx.h.n)}</div><div class="mid">${IR.fmtDay(nx.date)}<br>${IR.fmtTime(nx.date)}<small>${IR.irishTime(nx.date)}</small><small>${IR.esc(IR.compName(nx))}${nx.venue ? ' · ' + IR.esc(nx.venue) : ''}</small></div><div class="t">${IR.logo(nx.a, 'big')}${IR.esc(nx.a.n)}</div></div>` : '<p class="empty">No fixture listed.</p>';
     document.getElementById('fix').innerHTML = IR.byDay(fut) || '<p class="empty">No fixtures listed.</p>';
+    $('fixn').textContent = fut.length ? fut.length + ' listed' : ''; $('resn').textContent = past.length ? past.length + ' shown' : '';
+    $('soon').innerHTML = IR.byDay(fut.slice(1, 4)) || '<p class="empty">Nothing further listed yet.</p>';
+    $('last').innerHTML = IR.byDay(past.slice(0, 3)) || '<p class="empty">No results yet.</p>';
     let shown = 10; const more = document.getElementById('more');
     const draw = () => { document.getElementById('res').innerHTML = IR.byDay(past.slice(0, shown)) || '<p class="empty">No results yet.</p>'; more.hidden = shown >= past.length; };
     more.onclick = () => { shown += 20; draw(); }; draw();
@@ -46,7 +60,9 @@
       if (!g.rows.some((r) => r.s === SLUG)) continue;
       t += `<section class="card"><h2>${IR.esc(IR.COMP[code]?.[1] || code)}</h2>${g.name && groups.length > 1 ? '<div class="grp">' + IR.esc(g.name.replace(/^.*,\s*/, '')) + '</div>' : ''}${table(g.rows)}</section>`;
     }
-    document.getElementById('tabs').innerHTML = t;
+    document.getElementById('tabs').innerHTML = t || '<p class="empty">Not in a table right now.</p>';
+    const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+    $('tabsn').textContent = Object.entries(d.tables || {}).flatMap(([c, gs]) => gs.filter((g) => g.rows.some((r) => r.s === SLUG)).map((g) => `${ord(g.rows.find((r) => r.s === SLUG).pos)} in ${IR.COMP[c]?.[1] || c}`)).join(' · ');
     IR.footer(d.updated);
   } catch (e) { IR.fail(document.getElementById('next')); IR.footer(null); }
   function table(rows) {

@@ -6,7 +6,7 @@
   const el = document.getElementById('t');
   const ORDER = ['urc', 'cc', 'ch', 'nc', 'six'];
   const tbl = (rows) => '<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="wide">PF</th><th class="wide">PA</th><th>Diff</th><th>Pts</th></tr></thead><tbody>' + rows.map((r) => {
-    const n = `<span class="tmi">${IR.logo(r)}${IR.esc(r.n)}</span>`;
+    const n = IR.teamCell(r);
     const diff = r.pf - r.pa;
     return `<tr class="${IR.irish(r) ? 'irish' : ''}"><td>${r.pos}</td><td class="tm">${n}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="wide">${r.pf}</td><td class="wide">${r.pa}</td><td>${diff > 0 ? '+' + diff : diff}</td><td class="pts">${r.pts}</td></tr>`;
   }).join('') + '</tbody></table>';

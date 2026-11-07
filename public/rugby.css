@@ -325,3 +325,17 @@ a.more{font-weight:600;color:var(--accent-ink);text-decoration:none;min-height:4
 .yrow{display:flex;align-items:center;gap:16px}
 .wclogo{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:14px;padding:6px;box-shadow:0 0 0 1px var(--rule);flex:none}
 @media (max-width:760px){.wclogo{width:68px;height:68px}}
+/* Team links in tables, and team pages */
+.tbl a.tmi{color:inherit}.tbl a.tmi:hover span:last-child,.tbl a.tmi:hover{text-decoration:underline;text-underline-offset:3px}
+.shero{display:flex;gap:18px;align-items:center;background:var(--paper);border-radius:var(--radius);padding:20px 22px;margin:6px 0 12px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+.shero .lg{width:84px;height:84px;flex:none}.shero .lg img{width:64px;height:64px}
+.shero h1{font:600 28px/1.15 var(--display);margin:0}.shero p{margin:4px 0 0;color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:8px}.links a{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--tint);color:var(--ink);font-weight:600;font-size:14px;text-decoration:none}.links a:hover{background:#0a6b3d;color:#fff}
+.links svg{width:16px;height:16px}
+.squad{columns:2 260px;column-gap:24px}.squad section{break-inside:avoid;margin:0 0 12px}
+.squad h3{font:600 13px var(--body);color:var(--muted);margin:0 0 4px}
+.squad ul{list-style:none;margin:0;padding:0}.squad li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--rule);font-size:14px}
+.squad li small{color:var(--muted);text-align:right}
+.ground{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--rule)}.ground:first-child{border-top:0}
+.ground b{font-weight:600}.ground span{font:400 22px/1 var(--score)}
+@media (max-width:640px){.shero{padding:16px}.shero .lg{width:64px;height:64px}.shero .lg img{width:48px;height:48px}.shero h1{font-size:22px}}

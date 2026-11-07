@@ -28,6 +28,9 @@ const IR = (() => {
     if (t?.logo) return `<span class="lg ${cls}"><img src="${esc(t.logo)}" alt="" width="48" height="48" loading="lazy"></span>`;
     return `<span class="lg txt ${cls}">${esc((t?.n || '?').slice(0, 2).toUpperCase())}</span>`;
   };
+  // Every team in a table links somewhere: our own section for the five Irish teams, a team page for the rest.
+  const teamHref = (slug) => TEAMS[slug] ? `/${slug}/` : `/side/?s=${encodeURIComponent(slug)}`;
+  const teamCell = (t) => t?.s ? `<a class="tmi" href="${teamHref(t.s)}">${logo(t)}${esc(t.n)}</a>` : `<span class="tmi">${logo(t)}${esc(t?.n)}</span>`;
   const compName = (m) => (COMP[m.comp] ? COMP[m.comp][1] : m.compName) || '';
 
   const result = (m, s) => {
@@ -117,5 +120,5 @@ const IR = (() => {
   const sideScorers = (s) => scoreLine(s.try, 'Tries') + scoreLine(s.con, 'Conversions') + scoreLine(s.pen, 'Penalties') + scoreLine(s.drop, 'Drop goals');
 
   const fail = (el) => { el.innerHTML = '<p class="empty">Could not load the data. Please try again shortly.</p>'; };
-  return { SECTIONS, sideScorers, POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
+  return { teamHref, teamCell, SECTIONS, sideScorers, POS, season, playerKey, squadData, TEAMS, COMP, esc, irish, has, done, fmtDay, fmtDayLong, fmtTime, irishTime, logo, compName, result, row, byDay, upcoming, results, data, shell, footer, fail };
 })();

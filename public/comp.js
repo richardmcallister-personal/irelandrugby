@@ -5,6 +5,8 @@ const C = (() => {
   const esc = IR.esc;
   const name = (c) => NAMES[c] || c;
   const slug = (c) => { const s = c === 'USA' ? 'usa' : c === 'WSM' ? 'samoa' : name(c).toLowerCase().replace(/[^a-z]+/g, '-'); return LOGOS.has(s) ? s : null; };
+  // Slug for links: the same as the feed's team slugs
+  const lslug = (c) => c === 'USA' ? 'usa' : c === 'WSM' ? 'samoa' : name(c).toLowerCase().replace(/[^a-z]+/g, '-');
   const team = (c) => ({ s: slug(c), n: name(c) });
   const fd = (d, long = true) => d ? new Date(d + 'T12:00:00Z').toLocaleDateString('en-IE', { weekday: long ? 'short' : undefined, day: 'numeric', month: long ? 'long' : 'short', year: 'numeric', timeZone: 'UTC' }) : 'Date not recorded';
   const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
@@ -50,7 +52,7 @@ const C = (() => {
   }
   function table(t) {
     const rule = { '2': 'Two points for a win, one for a draw. Points worked out with that rule.', '4': 'Four points for a win, two for a draw, plus bonus points.', '2-1-0': 'Two points for a win, one for a draw.', '3-2-1': 'Three points for a win, two for a draw, one for a loss.', '4-2-0': 'Four points for a win, two for a draw, plus bonus points.' }[t.rule] || '';
-    return `<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="wide">PF</th><th class="wide">PA</th><th>Pts</th></tr></thead><tbody>${t.rows.map((r, k) => `<tr class="${r.c === 'IRE' ? 'irish' : ''}"><td>${k + 1}</td><td class="tm"><span class="tmi">${IR.logo(team(r.c))}${esc(name(r.c))}</span></td><td>${r.w + r.d + r.l}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="wide">${r.pf}</td><td class="wide">${r.pa}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table>${rule ? `<p class="note">${rule}</p>` : ''}`;
+    return `<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="wide">PF</th><th class="wide">PA</th><th>Pts</th></tr></thead><tbody>${t.rows.map((r, k) => `<tr class="${r.c === 'IRE' ? 'irish' : ''}"><td>${k + 1}</td><td class="tm"><a class="tmi" href="${IR.teamHref(lslug(r.c))}">${IR.logo(team(r.c))}${esc(name(r.c))}</a></td><td>${r.w + r.d + r.l}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="wide">${r.pf}</td><td class="wide">${r.pa}</td><td class="pts">${r.pts}</td></tr>`).join('')}</tbody></table>${rule ? `<p class="note">${rule}</p>` : ''}`;
   }
   // Final venue photo for each World Cup.
   const WCV = { 1987: 'eden-park', 1991: 'twickenham', 1995: 'ellis-park', 1999: 'millennium', 2003: 'stadium-australia', 2007: 'stade-de-france', 2011: 'eden-park', 2015: 'twickenham', 2019: 'yokohama', 2023: 'stade-de-france' };

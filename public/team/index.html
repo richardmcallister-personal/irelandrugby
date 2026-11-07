@@ -48,7 +48,7 @@
     IR.footer(d.updated);
   } catch (e) { IR.fail(document.getElementById('next')); IR.footer(null); }
   function table(rows) {
-    return '<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr></thead><tbody>' + rows.map((r) => `<tr class="${r.s === SLUG ? 'irish' : ''}"><td>${r.pos}</td><td class="tm"><span class="tmi">${IR.logo(r)}${IR.esc(r.n)}</span></td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="pts">${r.pts}</td></tr>`).join('') + '</tbody></table>';
+    return '<table class="tbl"><thead><tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr></thead><tbody>' + rows.map((r) => `<tr class="${r.s === SLUG ? 'irish' : ''}"><td>${r.pos}</td><td class="tm">${IR.teamCell(r)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td class="pts">${r.pts}</td></tr>`).join('') + '</tbody></table>';
   }
 })();
 </script></body></html>

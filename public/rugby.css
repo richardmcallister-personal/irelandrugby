@@ -274,3 +274,6 @@ nav.tabs{display:none}
 .tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;line-height:1.35;padding:6px 9px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .1s}
 .finals td small{display:block;color:var(--muted);font-size:12px}
 .finals .sc{font-family:var(--score);font-size:20px;white-space:nowrap}
+main>.stats div{background:var(--paper);box-shadow:0 1px 0 rgba(0,0,0,.05)}
+@media (max-width:640px){.nav{justify-content:flex-start;gap:0;overflow-x:auto;scrollbar-width:none}.nav a{padding:8px 7px;font-size:14px}}
+@media (max-width:380px){.nav a{padding:8px 5px;font-size:13px}}

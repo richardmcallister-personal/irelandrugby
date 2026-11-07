@@ -20,6 +20,15 @@ FIX = {
     'wales': {'grounds': [['Principality Stadium, Cardiff', 73931]]},
     'edinburgh': {'grounds': [['Edinburgh Rugby Stadium', 7800]]},
 }
+# Irish teams' accounts as linked from their own websites (checked 7 Nov 2026)
+IRISH_LINKS = {
+    'ireland': {'web': 'https://www.irishrugby.ie/', 'x': 'IrishRugby', 'ig': 'irishrugby', 'fb': 'irishrugby', 'tt': 'irishrugby', 'yt': 'https://www.youtube.com/irishrugbytv'},
+    'munster': {'x': 'MunsterRugby', 'ig': 'munsterrugby', 'tt': 'munsterrugby', 'yt': 'https://www.youtube.com/user/MunsterView'},
+    'leinster': {'x': 'leinsterrugby', 'ig': 'leinsterrugby', 'fb': 'leinsterrugby', 'tt': 'leinsterrugby', 'yt': 'https://www.youtube.com/user/LeinsterrugbyTV'},
+    'ulster': {'x': 'UlsterRugby', 'ig': 'officialulsterrugby', 'fb': 'ulsterrugby', 'tt': 'officialulsterrugby', 'yt': 'https://www.youtube.com/user/UlsterRugbyTV'},
+    'connacht': {'x': 'connachtrugby', 'ig': 'connachtrugby', 'fb': 'ConnachtRugby', 'tt': 'connachtrugby', 'yt': 'https://www.youtube.com/user/connachtrugbytv'},
+}
+FIX['ireland'] = {'grounds': [['Aviva Stadium, Dublin', 51711]]}
 LEAGUE = {'France': 'Top 14', 'United Kingdom': 'Premiership Rugby'}
 
 
@@ -31,7 +40,7 @@ def num(s):
 def grounds(g, cap):
     if not g or g.lower().startswith('various'):
         return []
-    parts = re.findall(r'(?:(?:Main|Secondary) Ground:\s*)?([^,(]+?)\s*\((?:[Cc]apacity:?\s*)?([\d,]+)(?:\s*capacity)?\)', g)
+    parts = re.findall(r'(?:(?:Main|Secondary) Ground:\s*)?([^,(]+?)\s*,?\s*\((?:[Cc]apacity:?\s*)?([\d,]+)(?:\s*capacity)?\)', g)
     if parts:
         return [[re.sub(r'^(?:Main|Secondary) Ground:\s*', '', n.strip()), num(c)] for n, c in parts]
     return [[g.split(',')[0].strip() if 'Stadio Sergio' not in g else g, num(cap)]]
@@ -39,8 +48,6 @@ def grounds(g, cap):
 
 out = {}
 for slug, t in S.items():
-    if slug in IRISH:
-        continue
     o = {k: t.get(k) for k in ('name', 'page', 'kind', 'nick', 'founded', 'coach', 'captain', 'location', 'country', 'record_att', 'opened', 'lat', 'lon', 'web', 'x', 'ig', 'fb', 'tt', 'yt', 'squad', 'squad_kind', 'most_caps', 'top_scorer', 'top_try', 'ground_page')}
     o['league'] = t.get('league') or (LEAGUE.get(t.get('country')) if t['kind'] == 'club' else '')
     o['grounds'] = grounds(t.get('ground'), t.get('capacity'))
@@ -54,6 +61,7 @@ for slug, t in S.items():
     if not re.search(r'\d{4}', o.get('founded') or ''):
         o['founded'] = t.get('inception')
     o.update(FIX.get(slug, {}))
+    o.update(IRISH_LINKS.get(slug, {}))
     o = {k: v for k, v in o.items() if v not in (None, '', [])}
     out[slug] = o
 json.dump(out, open('public/data/sides.json', 'w'), ensure_ascii=False, separators=(',', ':'))

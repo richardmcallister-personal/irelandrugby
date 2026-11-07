@@ -1,4 +1,4 @@
-<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>Ireland Rugby</title></head><body>
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><script src="/side.js"></script><title>Ireland Rugby</title></head><body>
 <script>const SLUG = location.pathname.split('/')[1]; IR.shell(SLUG);</script>
 <div class="hero" id="hero"></div>
 <main id="main" class="wrap">
@@ -10,6 +10,7 @@
 <div id="tabs"></div>
 <section class="card"><h2>Current kits</h2><div class="kits" id="kits"></div><p class="note"><a id="shirtl" href="/shirts/">Older shirts</a> · <a id="h2hl" href="/h2h/">Head to head</a> · <a id="pll" href="/players/">Players</a></p></section>
 </div></div>
+<div id="side"></div>
 </main>
 <script>
 (async () => {
@@ -27,6 +28,7 @@
   document.getElementById('kits').innerHTML = KITS[SLUG].map(([f, c]) => `<figure><img src="/img/kit/${SLUG}-${f}.webp" alt="${name} ${c} shirt" loading="lazy" width="240" height="270"><figcaption>${c}</figcaption></figure>`).join('');
   const hero = (form) => `<div class="in" style="--tc:var(--${SLUG})"><img src="/img/crest/${SLUG}-white.webp" alt="" width="92" height="92"><div><h1>${name}</h1>${form}</div></div>`;
   const h = document.getElementById('hero'); h.style.setProperty('--tc', 'var(--' + SLUG + ')'); h.innerHTML = hero('');
+  SIDE.load().then((S) => { const t = S[SLUG]; if (t) document.getElementById('side').innerHTML = SIDE.links(t) + `<div class="two">${SIDE.ground(t)}${SIDE.about(t)}</div>` + SIDE.squad(t) + SIDE.source(t); }).catch(() => {});
   try {
     const d = await IR.data();
     const ms = d.matches.filter((m) => IR.has(m, SLUG));

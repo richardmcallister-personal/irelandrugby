@@ -36,4 +36,5 @@ Sample: 12 finished matches opened (11 provincial, 1 Ireland), plus match lists,
 - The World Cup page links every year and every final.
 - Gaps: Wikipedia has no team lists or scorers for many seasons before about 1990; 1885 has no match details.
 - Team pages (7 Nov 2026): 57 teams from the tables and old championships and World Cups. Squads, grounds and links come from Wikipedia and Wikidata, so they can lag behind; rebuild after transfer windows. Coach left blank where the infobox was unclear (Bristol, Exeter).
+- The five Irish team sections now carry the same details: official links (taken from each team's own website), grounds, coach, captain, squad.
 - Open: shirt photo rights before launch; delete `_site-export.tgz`, `_titles-export.tgz`, `_comps-export.tgz` from the assets folder.

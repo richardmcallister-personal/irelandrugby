@@ -1,6 +1,7 @@
 // Team details shared by the team pages (/side/) and the Irish team sections (/ireland/, /munster/ ...).
 const SIDE = (() => {
-  const esc = IR.esc;
+  // Plain numbers: no thousands separators
+  const esc = (v) => IR.esc(String(v ?? '').replace(/(\d),(?=\d{3}\b)/g, '$1'));
   const ICON = { web: ['Website', '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'], x: ['X', '<path d="M4 4l16 16M20 4 4 20"/>'], ig: ['Instagram', '<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/>'], fb: ['Facebook', '<path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/>'], yt: ['YouTube', '<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10 9.5v5l4.5-2.5z"/>'], tt: ['TikTok', '<path d="M14 4v10a3.5 3.5 0 1 1-3.5-3.5M14 4c0 2.5 2 4.5 4.5 4.5"/>'] };
   const BASE = { web: '', x: 'https://x.com/', ig: 'https://www.instagram.com/', fb: 'https://www.facebook.com/', yt: 'https://www.youtube.com/channel/', tt: 'https://www.tiktok.com/@' };
   const url = (k, v) => (/^https?:/.test(v) ? v : BASE[k] + v);

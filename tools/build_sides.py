@@ -70,7 +70,7 @@ for slug,v in I.items():
       'lat':coord['latitude'] if coord else None,'lon':coord['longitude'] if coord else None,
       'most_caps':pl(ib.get('most caps','')),'top_scorer':pl(ib.get('top scorer','')),'top_try':pl(ib.get('most tries','') or ib.get('top try scorer','')),
       'web':first(e,'P856') or pl(ib.get('website','')),'x':first(e,'P2002'),'ig':first(e,'P2003'),'fb':first(e,'P2013'),'tt':first(e,'P7085'),'yt':yt,
-      'squad':sq,'squad_kind':kind}
+      'squad':sq,'squad_kind':kind,'inception':(first(e,'P571') or {}).get('time','')[1:5] or None}
     o=OUT[slug]; print(slug,'|',o['ground'],o['capacity'],'|rec',o['record_att'][:40],'|',o['location'],'|',o['league'],'|coach',o['coach'],'|cap',o['captain'],'|sq',len(sq),'|',o['web'],o['x'],o['ig'],o['fb'],o['yt'] and 'yt')
 json.dump(OUT,open('sides.json','w'),ensure_ascii=False,separators=(',',':'))
 print(os.path.getsize('sides.json'))

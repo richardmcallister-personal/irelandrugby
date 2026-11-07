@@ -47,6 +47,12 @@ for slug, t in S.items():
     if o['coach'] and (len(o['coach']) > 60 or ' was ' in o['coach']):
         o['coach'] = None
     o['record_att'] = re.sub(r'\s*\(\s*$', '', o['record_att'] or '').strip() or None
+    o['name'] = re.sub(r"^(.*?)(?: men's)? national rugby union team$", r'\1', o['name'] or t['page'])
+    cap = [p['n'] for p in t.get('squad', []) if p.get('c')]
+    if t['kind'] == 'nation' and cap:
+        o['captain'] = cap[0]  # the latest squad is newer than the infobox
+    if not re.search(r'\d{4}', o.get('founded') or ''):
+        o['founded'] = t.get('inception')
     o.update(FIX.get(slug, {}))
     o = {k: v for k, v in o.items() if v not in (None, '', [])}
     out[slug] = o

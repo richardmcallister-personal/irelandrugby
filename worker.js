@@ -283,6 +283,51 @@ async function apiMatch(env, url) {
   return json({ match: m, detail: rec }, 200, 300);
 }
 
+// --- calendar feed: /cal/ireland-munster.ics ------------------------------------
+// Phones and calendar apps poll this, so kickoff changes reach a supporter's calendar on their own.
+const COMP_NAME = { urc: 'United Rugby Championship', cc: 'Champions Cup', ch: 'Challenge Cup', six: 'Six Nations', nc: 'Nations Championship', test: 'Test match', anc: 'Autumn Nations Cup' };
+const icsText = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const icsTime = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+// Lines longer than 75 bytes are folded, as the format asks.
+function fold(line) {
+  const out = []; let cur = '', n = 0;
+  for (const ch of line) { const b = new TextEncoder().encode(ch).length; if (n + b > (out.length ? 74 : 75)) { out.push(cur); cur = ''; n = 0; } cur += ch; n += b; }
+  out.push(cur); return out.join('\r\n ');
+}
+async function calendar(env, url, p) {
+  const teams = [...new Set(p.replace(/^\/cal\//, '').replace(/\.ics$/, '').toLowerCase().split(/[-+,]/))].filter((t) => IRISH.has(t));
+  if (!teams.length) return new Response('Choose teams at /calendar/', { status: 404 });
+  const store = JSON.parse((await env.CACHE.get('data')) || '{}');
+  const hist = JSON.parse((await env.CACHE.get('history')) || '[]');
+  const since = Date.now() - 120 * 86400e3, seen = new Set(), list = [];
+  for (const m of [...withFixtures(store), ...hist]) {
+    if (!teams.includes(m.h.s) && !teams.includes(m.a.s)) continue;
+    const t = Date.parse(m.date); if (!(t > since)) continue;
+    const key = `${m.date.slice(0, 10)}|${m.h.s}|${m.a.s}`; if (seen.has(key)) continue; seen.add(key); list.push(m);
+  }
+  list.sort((a, b) => (a.date < b.date ? -1 : 1));
+  const names = teams.map((t) => NAME_BY_SLUG[t] || t);
+  const stamp = icsTime(store.updated || Date.now());
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//irelandrugby.wiki//Fixtures//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    `X-WR-CALNAME:${icsText('Rugby: ' + names.join(', '))}`, `X-WR-CALDESC:${icsText('Fixtures and results for ' + names.join(', ') + ' from irelandrugby.wiki. Times can change; this calendar updates itself.')}`,
+    'X-WR-TIMEZONE:Europe/Dublin', 'REFRESH-INTERVAL;VALUE=DURATION:PT6H', 'X-PUBLISHED-TTL:PT6H'];
+  for (const m of list) {
+    const t = Date.parse(m.date), done = /^Finished/.test(m.state) && m.score;
+    const comp = COMP_NAME[m.comp] || m.compName || 'Rugby';
+    const title = done ? `${m.h.n} ${m.score[0]}-${m.score[1]} ${m.a.n}` : `${m.h.n} v ${m.a.n}`;
+    const irish = new Intl.DateTimeFormat('en-IE', { timeZone: 'Europe/Dublin', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(t));
+    const link = m.id ? `${url.origin}/match/?id=${m.id}` : `${url.origin}/${teams.find((x) => x === m.h.s || x === m.a.s)}/`;
+    // Same id across kickoff changes, so calendars move the event rather than add a second one.
+    const uid = `${m.h.s}-${m.a.s}-${m.comp || 'x'}-${m.date.slice(0, 7)}@irelandrugby.wiki`;
+    L.push('BEGIN:VEVENT', `UID:${uid}`, `DTSTAMP:${stamp}`, `DTSTART:${icsTime(t)}`, `DTEND:${icsTime(t + 2 * 3600e3)}`,
+      `SUMMARY:${icsText(title)}`, ...(m.venue ? [`LOCATION:${icsText(m.venue)}`] : []),
+      `DESCRIPTION:${icsText(`${comp}. Kickoff ${irish} Irish time.${m.listed ? ' Copied from the team\'s published list; the time can change.' : ''}\n${link}`)}`,
+      `URL:${link}`, `CATEGORIES:${icsText(comp)}`, `STATUS:${/postpon|cancel/i.test(m.state) ? 'CANCELLED' : 'CONFIRMED'}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+  }
+  L.push('END:VCALENDAR');
+  return new Response(L.map(fold).join('\r\n') + '\r\n', { headers: { 'content-type': 'text/calendar; charset=utf-8', 'cache-control': 'public, max-age=1800', 'content-disposition': `inline; filename="rugby-${teams.join('-')}.ics"` } });
+}
+
 // Passed straight through from KV without parsing; the browser does the adding up.
 async function apiRaw(env, ctx, key, empty) {
   const raw = await env.CACHE.get(key);
@@ -299,6 +344,7 @@ export default {
     else if (p === '/api/match') res = await apiMatch(env, url);
     else if (p === '/api/players') res = await apiRaw(env, ctx, 'players', '{"people":[],"apps":{}}');
     else if (p === '/api/history') res = await apiRaw(env, ctx, 'history', '[]');
+    else if (/^\/cal\/[a-z+,-]+\.ics$/i.test(p)) res = await calendar(env, url, p);
     else if (/^\/(ireland|munster|leinster|ulster|connacht)\/?$/.test(p)) {
       if (!p.endsWith('/')) return Response.redirect(url.origin + p + '/', 301);
       res = await env.ASSETS.fetch(new Request(new URL('/team/', url), request));

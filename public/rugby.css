@@ -353,3 +353,18 @@ details.acc>summary:hover{color:var(--accent-ink)}
 .accb .card:last-child{margin-bottom:0}
 .accb .card>h2{font-size:15px;color:var(--muted)}
 @media (max-width:640px){details.acc>summary{padding:0 16px;font-size:17px}.accb{padding:0 16px 16px}details.acc>summary small{max-width:55%}}
+/* My calendar */
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pk{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border-radius:14px;background:var(--tint);cursor:pointer;font-weight:600;position:relative}
+.pk input{position:absolute;opacity:0;pointer-events:none}
+.pk img{width:34px;height:34px;padding:4px;border-radius:9px;background:var(--tc);box-sizing:border-box;flex:none}
+.pk.on{background:var(--tc);color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.pk.on img{background:rgba(255,255,255,.15)}
+.pk:has(input:focus-visible){outline:3px solid var(--accent-ink);outline-offset:2px}
+.pk::after{content:"";margin-left:auto;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--muted);flex:none}
+.pk.on::after{box-shadow:inset 0 0 0 6px #fff}
+.calbtn button{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;background:var(--tint);color:var(--ink);font:600 14px var(--body);border:0;cursor:pointer}
+.calbtn a:first-child{background:#0a6b3d;color:#fff}
+.calbtn button:hover{background:#0a6b3d;color:#fff}
+#u{word-break:break-all;font-size:13px}
+ul.plain{margin:0;padding-left:18px}ul.plain li{margin:0 0 8px}

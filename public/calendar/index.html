@@ -1,0 +1,49 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0a6b3d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ireland Rugby"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><link rel="stylesheet" href="/rugby.css"><script src="/rugby.js"></script><title>My rugby calendar · Ireland Rugby</title></head><body>
+<script>IR.shell('calendar')</script>
+<main id="main" class="wrap"><h1 class="pagehd">My rugby calendar</h1>
+<p class="note">Pick your teams and subscribe once. Fixtures go into your phone's calendar, and kickoff changes follow on their own.</p><div style="height:10px"></div>
+<section class="card"><h2>1. Choose your teams</h2><div class="pick" id="pick" role="group" aria-label="Teams"></div></section>
+<section class="card"><h2>2. Subscribe</h2><div id="sub"></div></section>
+<section class="card"><h2>What will be in it</h2><div id="prev"><p class="empty">Loading…</p></div></section>
+<section class="card"><h2>Good to know</h2><ul class="plain">
+<li>Every match for the teams you pick: Six Nations, Nations Championship, URC, Champions Cup and Challenge Cup. Each one shows as a two-hour event with the venue and competition.</li>
+<li>Finished matches stay in for four months with the score in the title.</li>
+<li>The calendar updates every few hours. Phones check it on their own schedule: Apple devices usually within a few hours, Google Calendar can take up to a day.</li>
+<li>Provincial fixtures not yet in our results feed are copied from the teams' own lists, so their times can still move. When they do, the event moves rather than doubling up.</li>
+<li>To stop it, delete the subscribed calendar in your calendar app. Nothing is stored about you; the link only names the teams.</li></ul></section>
+</main>
+<script>
+(async () => {
+  const esc = IR.esc, T = Object.entries(IR.TEAMS);
+  let sel = []; try { sel = JSON.parse(localStorage.getItem('cal-teams') || '[]').filter((s) => IR.TEAMS[s]); } catch (e) {}
+  const q = new URLSearchParams(location.search).get('t'); if (q) sel = q.split(/[-+,]/).filter((s) => IR.TEAMS[s]);
+  if (!sel.length) sel = ['ireland'];
+  let data = null;
+  const pick = document.getElementById('pick');
+  const draw = () => {
+    pick.innerHTML = T.map(([s, n]) => `<label class="pk${sel.includes(s) ? ' on' : ''}" style="--tc:var(--${s})"><input type="checkbox" value="${s}"${sel.includes(s) ? ' checked' : ''}><img src="/img/crest/${s}-white.webp" alt="" width="34" height="34"><span>${n}</span></label>`).join('');
+    const sub = document.getElementById('sub');
+    if (!sel.length) { sub.innerHTML = '<p class="empty">Pick at least one team.</p>'; document.getElementById('prev').innerHTML = ''; return; }
+    const ordered = T.map(([s]) => s).filter((s) => sel.includes(s));
+    const path = `/cal/${ordered.join('-')}.ics`, https = location.origin + path, webcal = https.replace(/^https?:/, 'webcal:');
+    const names = ordered.map((s) => IR.TEAMS[s]).join(', ');
+    sub.innerHTML = `<p style="margin:0 0 12px">One calendar for <b>${esc(names)}</b>.</p><div class="links calbtn">
+      <a href="${webcal}">iPhone, iPad or Mac</a>
+      <a href="https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}" target="_blank" rel="noopener">Google Calendar</a>
+      <a href="https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(https)}&name=${encodeURIComponent('Rugby: ' + names)}" target="_blank" rel="noopener">Outlook</a>
+      <button type="button" id="copy">Copy link</button></div>
+      <p class="note">Other apps: add a calendar "from URL" or "by subscription" and paste <code id="u">${esc(https)}</code></p>
+      <p class="note">On Android, use the Google Calendar button on a computer once; the calendar then appears on your phone too.</p>`;
+    document.getElementById('copy').onclick = async (e) => { try { await navigator.clipboard.writeText(https); e.target.textContent = 'Copied'; } catch (x) { const r = document.createRange(); r.selectNodeContents(document.getElementById('u')); getSelection().removeAllRanges(); getSelection().addRange(r); e.target.textContent = 'Press copy'; } setTimeout(() => { e.target.textContent = 'Copy link'; }, 2000); };
+    try { localStorage.setItem('cal-teams', JSON.stringify(sel)); } catch (e) {}
+    history.replaceState(null, '', '?t=' + ordered.join('-'));
+    if (data) {
+      const up = IR.upcoming(data.matches.filter((m) => sel.includes(m.h.s) || sel.includes(m.a.s)));
+      document.getElementById('prev').innerHTML = up.length ? IR.byDay(up.slice(0, 8)) + (up.length > 8 ? `<p class="note">And ${up.length - 8} more listed so far.</p>` : '') : '<p class="empty">No fixtures listed yet.</p>';
+    }
+  };
+  pick.onchange = (e) => { const s = e.target.value; sel = e.target.checked ? [...sel, s] : sel.filter((x) => x !== s); draw(); };
+  draw();
+  try { data = await IR.data(); draw(); IR.footer(data.updated); } catch (e) { IR.fail(document.getElementById('prev')); IR.footer(null); }
+})();
+</script></body></html>

@@ -247,6 +247,13 @@ async function loadDetail(env, m, withHighlights = true) {
 }
 
 // --- what the pages read -------------------------------------------------------
+// Venues the feed leaves out, filled by hand (match id -> ground). Richard confirmed these.
+const VENUES = {
+  45300365: { name: 'Aviva Stadium', city: 'Dublin' }, // Ireland v Argentina, 6 Nov 2026
+  45308875: { name: 'Aviva Stadium', city: 'Dublin' }, // Ireland v Fiji, 14 Nov 2026
+};
+const withVenue = (m) => (m && !m.venue && VENUES[m.id] ? { ...m, venue: VENUES[m.id].name } : m);
+
 function withFixtures(store) {
   const now = Date.now();
   const list = (store.feed || []).slice();
@@ -256,7 +263,7 @@ function withFixtures(store) {
     if (Date.parse(f.date) < now - 3 * 86400e3) continue; // played: the feed takes over
     list.push({ id: null, date: f.date, comp: f.comp, compName: '', venue: f.venue, h: { s: f.h, n: NAME_BY_SLUG[f.h] || f.h }, a: { s: f.a, n: NAME_BY_SLUG[f.a] || f.a }, score: null, state: 'Not started', listed: true });
   }
-  return list.sort((a, b) => (a.date < b.date ? -1 : 1));
+  return list.map(withVenue).sort((a, b) => (a.date < b.date ? -1 : 1));
 }
 
 async function apiData(env, ctx) {
@@ -280,7 +287,8 @@ async function apiMatch(env, url) {
     rec.hl = true;
     await env.CACHE.put('m:' + id, JSON.stringify(rec));
   }
-  return json({ match: m, detail: rec }, 200, 300);
+  if (VENUES[id]) rec = { ...(rec || {}), venue: rec?.venue?.name ? rec.venue : VENUES[id] };
+  return json({ match: withVenue(m), detail: rec }, 200, 300);
 }
 
 // --- calendar feed: /cal/ireland-munster.ics ------------------------------------
@@ -300,7 +308,7 @@ async function calendar(env, url, p) {
   const store = JSON.parse((await env.CACHE.get('data')) || '{}');
   const hist = JSON.parse((await env.CACHE.get('history')) || '[]');
   const since = Date.now() - 120 * 86400e3, seen = new Set(), list = [];
-  for (const m of [...withFixtures(store), ...hist]) {
+  for (const m of [...withFixtures(store), ...hist.map(withVenue)]) {
     if (!teams.includes(m.h.s) && !teams.includes(m.a.s)) continue;
     const t = Date.parse(m.date); if (!(t > since)) continue;
     const key = `${m.date.slice(0, 10)}|${m.h.s}|${m.a.s}`; if (seen.has(key)) continue; seen.add(key); list.push(m);

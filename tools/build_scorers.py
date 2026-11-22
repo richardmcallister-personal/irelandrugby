@@ -1,6 +1,6 @@
 # Reads Wikipedia match boxes and matches them to the site's match list. Every side is checked: 5 per try, 2 per conversion, 3 per penalty or drop goal must equal the score.
 import re,json,sys,time,urllib.request,urllib.parse,datetime as dt,collections,os
-UA='irelandrugby-builder/1.0 (personal fan site; richardmcallister@gmail.com)'
+UA='irelandrugby-builder/1.0 (personal fan site)'
 def get(u):
     r=urllib.request.Request(u,headers={'User-Agent':UA}); return urllib.request.urlopen(r,timeout=30).read().decode('utf8')
 PAGES=['2020 Six Nations Championship','Autumn Nations Cup','2020 Autumn Nations Cup','2021 Six Nations Championship','2022 Six Nations Championship','2023 Six Nations Championship','2024 Six Nations Championship','2025 Six Nations Championship','2026 Six Nations Championship','2026 Nations Championship','2026 Nations Championship Southern Hemisphere Series','2026 Nations Championship Northern Hemisphere Series',

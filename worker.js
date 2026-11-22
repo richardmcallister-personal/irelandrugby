@@ -47,16 +47,22 @@ const json = (body, status = 200, maxAge = 0) => new Response(JSON.stringify(bod
 // --- feed, with a daily budget -------------------------------------------------
 const budgetKey = () => 'budget:' + new Date().toISOString().slice(0, 10);
 
+// During a refresh the call count lives in memory and is written once at the end, so a run
+// costs a handful of storage writes instead of two per feed call (the free plan allows 1000 a day).
+let RUN = null;
 async function feed(env, path, params = {}) {
   const key = budgetKey();
-  const used = Number(await env.CACHE.get(key)) || 0;
-  const floor = Number(await env.CACHE.get('feed:remaining'));
-  if (used >= DAILY_CAP || (await env.CACHE.get('feed:remaining') !== null && floor < FEED_FLOOR)) return null;
+  const used = RUN ? RUN.used : Number(await env.CACHE.get(key)) || 0;
+  const left0 = RUN ? RUN.left : await env.CACHE.get('feed:remaining');
+  if (used >= DAILY_CAP || (left0 !== null && Number(left0) < FEED_FLOOR)) return null;
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(FEED + path + (qs ? '?' + qs : ''), { headers: { 'x-rapidapi-key': env.HIGHLIGHTLY_KEY } });
-  await env.CACHE.put(key, String(used + 1), { expirationTtl: 172800 });
   const left = res.headers.get('x-ratelimit-requests-remaining');
-  if (left !== null) await env.CACHE.put('feed:remaining', left, { expirationTtl: 3600 });
+  if (RUN) { RUN.used = used + 1; RUN.calls++; if (left !== null) RUN.left = left; if (!res.ok) RUN.bad.push(path + ' ' + res.status); }
+  else {
+    await env.CACHE.put(key, String(used + 1), { expirationTtl: 172800 });
+    if (left !== null) await env.CACHE.put('feed:remaining', left, { expirationTtl: 3600 });
+  }
   if (!res.ok) { console.log('feed', path, res.status); return null; }
   return res.json();
 }
@@ -96,8 +102,11 @@ async function loadList(env, side, id, limit) {
 }
 
 async function refresh(env) {
-  if (await env.CACHE.get('lock')) return;
+  if (await env.CACHE.get('lock')) return 'locked';
   await env.CACHE.put('lock', '1', { expirationTtl: 120 });
+  RUN = { used: Number(await env.CACHE.get(budgetKey())) || 0, left: await env.CACHE.get('feed:remaining'), calls: 0, bad: [] };
+  const started = Date.now();
+  let err = null;
   try {
     const prev = JSON.parse((await env.CACHE.get('data')) || '{}');
     const due = matchDue(prev);
@@ -155,9 +164,18 @@ async function refresh(env) {
     const history = [...all.values()];
     await env.CACHE.put('history', JSON.stringify(history));
     await fillSheets(env, history);
+  } catch (e) {
+    err = String(e?.stack || e).slice(0, 600);
+    console.log('refresh failed', err);
   } finally {
-    await env.CACHE.delete('lock');
+    const run = RUN; RUN = null;
+    // Best effort: if storage writes are what failed, these fail too, and the log above still has it.
+    try { if (run.calls) await env.CACHE.put(budgetKey(), String(run.used), { expirationTtl: 172800 }); } catch (e) {}
+    try { if (run.left !== null) await env.CACHE.put('feed:remaining', String(run.left), { expirationTtl: 3600 }); } catch (e) {}
+    try { await env.CACHE.put('lastrun', JSON.stringify({ at: started, ms: Date.now() - started, calls: run.calls, bad: run.bad.slice(0, 10), err })); } catch (e) {}
+    try { await env.CACHE.delete('lock'); } catch (e) {}
   }
+  return err || 'ok';
 }
 
 const IRISH = new Set(Object.keys(TEAMS));
@@ -251,6 +269,7 @@ async function loadDetail(env, m, withHighlights = true) {
 const VENUES = {
   45300365: { name: 'Aviva Stadium', city: 'Dublin' }, // Ireland v Argentina, 6 Nov 2026
   45308875: { name: 'Aviva Stadium', city: 'Dublin' }, // Ireland v Fiji, 14 Nov 2026
+  45312279: { name: 'Aviva Stadium', city: 'Dublin' }, // Ireland v South Africa, 21 Nov 2026
 };
 const withVenue = (m) => (m && !m.venue && VENUES[m.id] ? { ...m, venue: VENUES[m.id].name } : m);
 
@@ -270,7 +289,11 @@ async function apiData(env, ctx) {
   const raw = await env.CACHE.get('data');
   if (!raw) { await refresh(env); }
   const store = JSON.parse(raw || (await env.CACHE.get('data')) || '{}');
-  if (store.updated && Date.now() - store.updated > 7 * 3600e3) ctx.waitUntil(refresh(env));
+  if (store.updated && Date.now() - store.updated > 7 * 3600e3) {
+    // At most one page-triggered try per half hour, so a failing refresh can't burn the day's writes.
+    const last = JSON.parse((await env.CACHE.get('lastrun')) || '{}');
+    if (!last.at || Date.now() - last.at > 1800e3) ctx.waitUntil(refresh(env));
+  }
   return json({ updated: store.updated || null, matches: withFixtures(store), tables: store.tables || {} }, 200, 300);
 }
 
@@ -337,6 +360,18 @@ async function calendar(env, url, p) {
 }
 
 // Passed straight through from KV without parsing; the browser does the adding up.
+// Health check: when the data was last refreshed, today's feed calls and the last run's outcome.
+// ?run=1 starts a refresh now, but only when the data is over 6 hours old.
+async function apiStatus(env, url) {
+  const store = JSON.parse((await env.CACHE.get('data')) || '{}');
+  let ran = null;
+  if (url.searchParams.get('run') === '1' && (!store.updated || Date.now() - store.updated > 6 * 3600e3)) ran = await refresh(env);
+  const after = ran ? JSON.parse((await env.CACHE.get('data')) || '{}') : store;
+  return json({ updated: after.updated ? new Date(after.updated).toISOString() : null, tables: after.tablesAt ? new Date(after.tablesAt).toISOString() : null,
+    callsToday: Number(await env.CACHE.get(budgetKey())) || 0, cap: DAILY_CAP, feedRemaining: await env.CACHE.get('feed:remaining'),
+    locked: !!(await env.CACHE.get('lock')), lastRun: JSON.parse((await env.CACHE.get('lastrun')) || 'null'), ran });
+}
+
 async function apiRaw(env, ctx, key, empty) {
   const raw = await env.CACHE.get(key);
   if (!raw) ctx.waitUntil(refresh(env));
@@ -352,6 +387,7 @@ export default {
     else if (p === '/api/match') res = await apiMatch(env, url);
     else if (p === '/api/players') res = await apiRaw(env, ctx, 'players', '{"people":[],"apps":{}}');
     else if (p === '/api/history') res = await apiRaw(env, ctx, 'history', '[]');
+    else if (p === '/api/status') res = await apiStatus(env, url);
     else if (/^\/cal\/[a-z+,-]+\.ics$/i.test(p)) res = await calendar(env, url, p);
     else if (/^\/(ireland|munster|leinster|ulster|connacht)\/?$/.test(p)) {
       if (!p.endsWith('/')) return Response.redirect(url.origin + p + '/', 301);
